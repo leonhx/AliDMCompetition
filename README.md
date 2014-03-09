@@ -14,7 +14,7 @@ AliDMCompetition
     点击：0
     购买：1
     收藏：2
-    购物车：3 
+    购物车：3
 
 
 提交格式
@@ -29,5 +29,7 @@ AliDMCompetition
 
 参考论文
 --------
+
+See https://www.google.com.hk/search?q=data+mining+time+series&ie=utf-8&oe=utf-8&aq=t for more.
 
 Chapter 1 MINING TIME SERIES DATA - ResearchGate
