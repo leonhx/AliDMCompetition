@@ -22,9 +22,9 @@ def f1(pred_result, test_result):
             hitBrands += len(pred_result[ui].intersection(test_result[ui]))
     bBrands = sum([len(test_result[ui]) for ui in test_result])
     p = hitBrands * 1. / pBrands
-    assert 0 < p < 1
+    assert 0 < p <= 1
     r = hitBrands * 1. / bBrands
-    assert 0 < r < 1
+    assert 0 < r <= 1
     return (p, r, 2.*p*r/(p+r))
 
 if __name__ == '__main__':

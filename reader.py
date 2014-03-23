@@ -16,22 +16,22 @@ def date_parser(s):
     return datetime.date(YEAR, int(m.group(1)), int(m.group(2)))
 
 raw_data = pd.read_csv('t_alibaba_data.csv', parse_dates=[3], date_parser=date_parser)
-# scores = np.where(raw_data.ix[:, 2] == 1, 4, np.where(raw_data.ix[:, 2] == 0, 1, raw_data.ix[:, 2]))
-# raw_data['score'] = Series(scores)
+scores = np.where(raw_data.ix[:, 2] == 1, 4, np.where(raw_data.ix[:, 2] == 0, 1, raw_data.ix[:, 2]))
+raw_data['score'] = Series(scores)
 raw_data['score'] = raw_data['type']
 
-test_data = raw_data.ix[raw_data.visit_datetime > datetime.date(YEAR, 7, 15), :]
+# test_data = raw_data.ix[raw_data.visit_datetime > datetime.date(YEAR, 7, 15), :]
 train_data = raw_data.ix[raw_data.visit_datetime <= datetime.date(YEAR, 7, 15), :]
 
 # test_behaviour = test_data.ix[test_data.score == 4, :][['user_id', 'brand_id']]
-test_behaviour = test_data.ix[test_data.score == 1, :][['user_id', 'brand_id']]
-test_result = {}
-for r in test_behaviour.iterrows():
-    ui, bi = r[1].user_id, r[1].brand_id
-    test_result.setdefault(ui, set())
-    test_result[ui].add(bi)
+# test_behaviour = test_data.ix[test_data.score == 1, :][['user_id', 'brand_id']]
+# test_result = {}
+# for r in test_behaviour.iterrows():
+#     ui, bi = r[1].user_id, r[1].brand_id
+#     test_result.setdefault(ui, set())
+#     test_result[ui].add(bi)
 
-# import pickle
+import pickle
 
 # f = open('raw_data.pkl', 'w')
 # pickle.dump(raw_data, f)
@@ -49,6 +49,6 @@ for r in test_behaviour.iterrows():
 # f = open('train_data.pkl', 'r')
 # train_data = pickle.load(f)
 # f.close()
-# f = open('test_result.pkl', 'r')
-# test_result = pickle.load(f)
-# f.close()
+f = open('test_result.pkl', 'r')
+test_result = pickle.load(f)
+f.close()

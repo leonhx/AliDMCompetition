@@ -46,7 +46,7 @@ class ScoreGrid:
         self.__users__ = None
         self.ix = ScoreGridIndex(self)
     def __getitem__(self, ij):
-        if type(ij) == int:
+        if type(ij) != tuple:
             return self.__vec__.get(ij)
         i, j = ij
         if i == j:
@@ -65,6 +65,22 @@ class ScoreGrid:
         if not self.__users__:
             self.__users__ = self.__vec__.keys()
         return self.__users__
+    def maximum(self, user_id):
+        highest = 0.
+        other = None
+        for ui in self.__vec__[user_id]:
+            if self.__vec__[user_id][ui] > highest:
+                highest = self.__vec__[user_id][ui]
+                other = ui
+        return other
+    def minimum(self, user_id):
+        lowest = 0.
+        other = None
+        for ui in self.__vec__[user_id]:
+            if self.__vec__[user_id][ui] > lowest:
+                lowest = self.__vec__[user_id][ui]
+                other = ui
+        return other
 
 import pickle
 
@@ -98,15 +114,19 @@ f.close()
 def predict(user_id):
     score = users[user_id]
     brand_ids = []
+    picked_users = []
+    for ui in weights[user_id]:
+        if weights[user_id, ui] > 0.1:
+            picked_users.append(ui)
     for bi in score.brands():
         bi_sc = 0.
         weight_sum = 0.
-        for ui in users:
+        for ui in picked_users:
             if ui != user_id and bi in users[ui].brands():
                 bi_sc += users[ui][bi] * weights[user_id, ui]
                 weight_sum += weights[user_id, ui]
         if weight_sum != 0.:
-            if 1. < bi_sc / weight_sum < 2.:
+            if bi_sc / weight_sum > 2:
                 brand_ids.append(bi)
     return brand_ids
 
