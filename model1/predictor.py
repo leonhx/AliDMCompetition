@@ -134,3 +134,7 @@ pred_result = {}
 for ui in users:
     pred_result.setdefault(ui, set())
     pred_result[ui].update(predict(ui))
+
+f = open('pred_result.pkl', 'w')
+pickle.dump(pred_result, f)
+f.close()
