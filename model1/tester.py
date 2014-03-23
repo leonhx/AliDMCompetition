@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import sys, os
-sys.path.append(os.path.abspath('.'))
+sys.path.append(os.path.abspath('./model1'))
 
 import numpy as np
 
