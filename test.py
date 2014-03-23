@@ -39,9 +39,10 @@ if __name__ == '__main__':
         raise LookupError('Please specify model to test.')
     for model in sys.argv[1:]:
         import os
-        model_path = os.path.join('.', model, 'pred_result.pkl')
-        result_path = os.path.join('.', 'data', 'test_result.pkl')
-        train_data_path = os.path.join('.', 'data', 'train_data.npy')
+        current_dir = os.path.join(*os.path.split(os.path.abspath(__file__))[:-1])
+        model_path = os.path.join(current_dir, model, 'pred_result.pkl')
+        result_path = os.path.join(current_dir, 'data', 'test_result.pkl')
+        train_data_path = os.path.join(current_dir, 'data', 'train_data.npy')
         import pickle
         f = open(model_path, 'r')
         pred_result = pickle.load(f)
