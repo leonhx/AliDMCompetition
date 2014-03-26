@@ -2,6 +2,9 @@
 # -*- coding: utf-8 -*-
 
 import numpy as np
+from sklearn.grid_search import GridSearchCV
+from sklearn.svm import SVC
+from sklearn.externals import joblib
 
 import sys
 import os
@@ -51,14 +54,15 @@ def time_linear(alpha=1.0):
             elif i[2] == 3:
                 cart_inf += inf
         if flag or not_util or buy_date - data[-1, 3] > 30:
-            return np.array([click_inf, buy_inf, favo_inf, cart_inf, 0])
+            return np.array([click_inf, buy_inf, favo_inf, cart_inf]), 0
         else:
-            return np.array([click_inf, buy_inf, favo_inf, cart_inf, 1])
+            return np.array([click_inf, buy_inf, favo_inf, cart_inf]), 1
     return linear_alpha
 
 def extract_feature(data, kernel=time_linear()):
     sort_by(data)
     new_data = None
+    ys = []
     for ui in np.unique(data[:, 0]):
         u_data = data[data[:, 0] == ui]
         for bi in np.unique(u_data[:, 1]):
@@ -71,19 +75,33 @@ def extract_feature(data, kernel=time_linear()):
                     i += 1
                     continue
                 if whether_buy[buy_ix]:
-                    rec = kernel(ub_data[:buy_ix], ub_data[buy_ix, 3])
+                    rec, y = kernel(ub_data[:buy_ix], ub_data[buy_ix, 3])
                     new_data = np.vstack((new_data, rec)) if new_data is not None else rec
+                    ys.append(y)
                     i = buy_ix + 1
                 else:
-                    rec = kernel(ub_data, pre.BOUND, not_util=True)
-                    if rec is not None:
+                    rec_y = kernel(ub_data, pre.BOUND, not_util=True)
+                    if rec_y is not None:
+                        rec, y = rec_y
                         new_data = np.vstack((new_data, rec)) if new_data is not None else rec
+                        ys.append(y)
                     break
-    return new_data
+    return new_data, np.array(ys)
 
 if __name__ == '__main__':
     data_path = os.path.join(
         os.path.split(os.path.split(os.path.abspath(__file__))[0])[0],
         'data', 'train_data.npy')
     train_data = np.load(data_path)
-    inf_data = extract_feature(train_data, kernel=time_linear())
+    inf_data, y = extract_feature(train_data, kernel=time_linear())
+
+    param_grid = [
+        {'C': [1, 10, 100], 'kernel': ['linear']},
+        {'C': [1, 10, 100], 'gamma': [0.001, 0.0001], 'kernel': ['rbf']},
+        {'C': [1, 10, 100], 'degree': [2, 3], 'kernel': ['poly']},
+    ]
+    clf = GridSearchCV(SVC(C=1), param_grid, cv=5, scoring='f1', n_jobs=-1)
+    clf.fit(inf_data, y)
+
+    print('Best parameters set found on development set: %s' % clf.best_estimator_)
+    print('Best f1 score: %s' % clf.best_score_)
