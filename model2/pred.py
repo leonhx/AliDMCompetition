@@ -31,20 +31,13 @@ def sort_by(data, order=['user_id', 'brand_id', 'visit_datetime']):
         data[i][3] = td['visit_datetime']
 
 def time_linear(alpha=1.0):
-    def linear_alpha(data, buy_date, not_util=False):
-        flag = False
-        if not_util and buy_date - data[-1, 3] <= 30:
-            flag = True
+    def linear_alpha(data, end_date):
         click_inf = 0.
         buy_inf   = 0.
         favo_inf  = 0.
         cart_inf  = 0.
         for i in data:
-            if flag and buy_date - i[3] <= 30:
-                if click_inf == 0. and buy_inf == 0. and favo_inf == 0. and cart_inf == 0.:
-                    return None
-                break
-            inf = 1./(1+alpha*(buy_date - i[3]))
+            inf = 1./(1+alpha*(end_date - i[3]))
             if i[2] == 0:
                 click_inf += inf
             elif i[2] == 1:
@@ -53,40 +46,55 @@ def time_linear(alpha=1.0):
                 favo_inf += inf
             elif i[2] == 3:
                 cart_inf += inf
-        if flag or not_util or buy_date - data[-1, 3] > 30:
-            return np.array([click_inf, buy_inf, favo_inf, cart_inf]), 0
-        else:
-            return np.array([click_inf, buy_inf, favo_inf, cart_inf]), 1
+        return np.array([click_inf, buy_inf, favo_inf, cart_inf])
     return linear_alpha
+
+def use_kernel(kernel, data, buy_date, not_util=False):
+    y = 1
+    if not_util:
+        data = data[data[:, 3] < buy_date - 30]
+        if data.shape[0] == 0:
+            return None
+    if not_util or buy_date - data[-1, 3] > 30:
+        y = 0
+    return kernel(data, buy_date), y
+
+def get_instances(ub_data, kernel):
+    whether_buy = ub_data[:, 2] == 1
+    xs = []
+    ys = []
+    i = 0
+    while i < len(whether_buy):
+        buy_ix = i + whether_buy[i:].argmax()
+        if buy_ix == 0 and whether_buy[buy_ix]:
+            i += 1
+            continue
+        if whether_buy[buy_ix]:
+            x, y = use_kernel(kernel, ub_data[:buy_ix], ub_data[buy_ix, 3])
+            xs.append(x)
+            ys.append(y)
+            i = buy_ix + 1
+        else:
+            rec = use_kernel(kernel, ub_data, pre.BOUND, not_util=True)
+            if rec is not None:
+                x, y = rec
+                xs.append(x)
+                ys.append(y)
+            break
+    return xs, ys
 
 def extract_feature(data, kernel=time_linear()):
     sort_by(data)
-    new_data = None
+    xs = []
     ys = []
     for ui in np.unique(data[:, 0]):
         u_data = data[data[:, 0] == ui]
         for bi in np.unique(u_data[:, 1]):
             ub_data = u_data[u_data[:, 1] == bi]
-            whether_buy = ub_data[:, 2] == 1
-            i = 0
-            while i < len(whether_buy):
-                buy_ix = i + whether_buy[i:].argmax()
-                if buy_ix == 0 and whether_buy[buy_ix]:
-                    i += 1
-                    continue
-                if whether_buy[buy_ix]:
-                    rec, y = kernel(ub_data[:buy_ix], ub_data[buy_ix, 3])
-                    new_data = np.vstack((new_data, rec)) if new_data is not None else rec
-                    ys.append(y)
-                    i = buy_ix + 1
-                else:
-                    rec_y = kernel(ub_data, pre.BOUND, not_util=True)
-                    if rec_y is not None:
-                        rec, y = rec_y
-                        new_data = np.vstack((new_data, rec)) if new_data is not None else rec
-                        ys.append(y)
-                    break
-    return new_data, np.array(ys)
+            xs_, ys_ = get_instances(ub_data, kernel)
+            xs += xs_
+            ys += ys_
+    return np.array(xs), np.array(ys)
 
 if __name__ == '__main__':
     data_path = os.path.join(
