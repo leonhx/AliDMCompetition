@@ -30,14 +30,14 @@ def sort_by(data, order=['user_id', 'brand_id', 'visit_datetime']):
         data[i][2] = td['type']
         data[i][3] = td['visit_datetime']
 
-def time_linear(alpha=1.0):
-    def linear_alpha(data, end_date):
+def time_poly(alpha=1.0, n=2):
+    def poly(data, end_date):
         click_inf = 0.
         buy_inf   = 0.
         favo_inf  = 0.
         cart_inf  = 0.
         for i in data:
-            inf = 1./(1+alpha*(end_date - i[3]))
+            inf = 1./(1+alpha*(end_date - i[3])**n)
             if i[2] == 0:
                 click_inf += inf
             elif i[2] == 1:
@@ -47,7 +47,7 @@ def time_linear(alpha=1.0):
             elif i[2] == 3:
                 cart_inf += inf
         return np.array([click_inf, buy_inf, favo_inf, cart_inf])
-    return linear_alpha
+    return poly
 
 def use_kernel(kernel, data, buy_date, not_util=False):
     y = 1
@@ -104,36 +104,28 @@ if __name__ == '__main__':
         os.path.split(os.path.split(os.path.abspath(__file__))[0])[0],
         'data', 'train_data.npy')
     data = np.load(data_path)
-    linear_kernel = time_linear(alpha=1.0)
+    # poly_kernel = time_poly(alpha=0.5, n=1)
 
-    # X, y = extract_feature(data, linear_kernel, get_train_instances)
-    # param_grid = [
-    #     {'C': [1, 10, 100], 'kernel': ['linear']},
-    #     {'C': [1, 10, 100], 'gamma': [0.001, 0.0001], 'kernel': ['rbf']},
-    #     {'C': [1, 10, 100], 'degree': [2, 3], 'kernel': ['poly']},
-    # ]
-    # clf = GridSearchCV(SVC(C=1), param_grid, cv=5, scoring='f1', n_jobs=-1)
+    # X, y = extract_feature(data, poly_kernel, get_train_instances)
+    # clf = SVC(C=10000, kernel='rbf', gamma=0.001)
     # clf.fit(X, y)
 
-    # print('Best parameters set found on development set: %s' % clf.best_estimator_)
-    # print('Best f1 score: %s' % clf.best_score_)
+    # # clf = joblib.load(
+    # #     os.path.join(
+    # #         os.path.split(os.path.abspath(__file__))[0],
+    # #         'rbf.C=10.gamma=0.001.svc'))
+    # pred_X, ub = extract_feature(data, poly_kernel, get_pred_instance)
+    # y = clf.predict(pred_X)
+    # ub = ub[y == 1]
 
-    clf = joblib.load(
-        os.path.join(
-            os.path.split(os.path.abspath(__file__))[0],
-            'rbf.C=10.gamma=0.001.svc'))
-    pred_X, ub = extract_feature(data, linear_kernel, get_pred_instance)
-    y = clf.predict(pred_X)
-    ub = ub[y == 1]
-
-    pred_result = {}
-    for ui, bi in ub:
-        pred_result.setdefault(ui, set())
-        pred_result[ui].add(bi)
-    import pickle
-    f = open(
-        os.path.join(
-            os.path.split(os.path.abspath(__file__))[0], 'pred_result.pkl'),
-        'w')
-    pickle.dump(pred_result, f)
-    f.close()
+    # pred_result = {}
+    # for ui, bi in ub:
+    #     pred_result.setdefault(ui, set())
+    #     pred_result[ui].add(bi)
+    # import pickle
+    # f = open(
+    #     os.path.join(
+    #         os.path.split(os.path.abspath(__file__))[0], 'pred_result.pkl'),
+    #     'w')
+    # pickle.dump(pred_result, f)
+    # f.close()
