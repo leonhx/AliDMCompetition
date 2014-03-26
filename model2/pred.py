@@ -59,7 +59,7 @@ def use_kernel(kernel, data, buy_date, not_util=False):
         y = 0
     return kernel(data, buy_date), y
 
-def get_instances(ub_data, kernel):
+def get_train_instances(ub_data, kernel):
     whether_buy = ub_data[:, 2] == 1
     xs = []
     ys = []
@@ -83,7 +83,10 @@ def get_instances(ub_data, kernel):
             break
     return xs, ys
 
-def extract_feature(data, kernel=time_linear()):
+def get_pred_instance(ub_data, kernel):
+    return [kernel(ub_data, pre.BOUND)], [np.array([ub_data[0, 0], ub_data[0, 1]])]
+
+def extract_feature(data, kernel, get_instances):
     sort_by(data)
     xs = []
     ys = []
@@ -100,16 +103,37 @@ if __name__ == '__main__':
     data_path = os.path.join(
         os.path.split(os.path.split(os.path.abspath(__file__))[0])[0],
         'data', 'train_data.npy')
-    train_data = np.load(data_path)
-    inf_data, y = extract_feature(train_data, kernel=time_linear())
+    data = np.load(data_path)
+    linear_kernel = time_linear(alpha=1.0)
 
-    param_grid = [
-        {'C': [1, 10, 100], 'kernel': ['linear']},
-        {'C': [1, 10, 100], 'gamma': [0.001, 0.0001], 'kernel': ['rbf']},
-        {'C': [1, 10, 100], 'degree': [2, 3], 'kernel': ['poly']},
-    ]
-    clf = GridSearchCV(SVC(C=1), param_grid, cv=5, scoring='f1', n_jobs=-1)
-    clf.fit(inf_data, y)
+    # X, y = extract_feature(data, linear_kernel, get_train_instances)
+    # param_grid = [
+    #     {'C': [1, 10, 100], 'kernel': ['linear']},
+    #     {'C': [1, 10, 100], 'gamma': [0.001, 0.0001], 'kernel': ['rbf']},
+    #     {'C': [1, 10, 100], 'degree': [2, 3], 'kernel': ['poly']},
+    # ]
+    # clf = GridSearchCV(SVC(C=1), param_grid, cv=5, scoring='f1', n_jobs=-1)
+    # clf.fit(X, y)
 
-    print('Best parameters set found on development set: %s' % clf.best_estimator_)
-    print('Best f1 score: %s' % clf.best_score_)
+    # print('Best parameters set found on development set: %s' % clf.best_estimator_)
+    # print('Best f1 score: %s' % clf.best_score_)
+
+    clf = joblib.load(
+        os.path.join(
+            os.path.split(os.path.abspath(__file__))[0],
+            'rbf.C=10.gamma=0.001.svc'))
+    pred_X, ub = extract_feature(data, linear_kernel, get_pred_instance)
+    y = clf.predict(pred_X)
+    ub = ub[y == 1]
+
+    pred_result = {}
+    for ui, bi in ub:
+        pred_result.setdefault(ui, set())
+        pred_result[ui].add(bi)
+    import pickle
+    f = open(
+        os.path.join(
+            os.path.split(os.path.abspath(__file__))[0], 'pred_result.pkl'),
+        'w')
+    pickle.dump(pred_result, f)
+    f.close()
