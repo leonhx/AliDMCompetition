@@ -51,8 +51,23 @@ model2, LogisticRegression(penalty='l1')
     Recall:    0.058209
     F1 score:  0.053352
 
+
 model2, Perceptron(penalty='l1')
 
     Precision: 0.039648
     Recall:    0.080597
     F1 score:  0.053150
+
+
+model2, PassiveAggressiveClassifier(C=1, loss='hinge')
+
+    Precision: 0.044615
+    Recall:    0.064925
+    F1 score:  0.052888
+
+
+model2, PassiveAggressiveClassifier(C=1, loss='squared_hinge')
+
+    Precision: 0.025883
+    Recall:    0.094030
+    F1 score:  0.040593

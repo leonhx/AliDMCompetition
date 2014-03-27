@@ -106,7 +106,7 @@ if __name__ == '__main__':
     X, y = extract_feature(data, poly_kernel, get_train_instances)
 
     from sklearn import linear_model
-    clf = linear_model.Perceptron(penalty='l1')
+    clf = linear_model.PassiveAggressiveClassifier(C=1, loss='squared_hinge')
     clf.fit(X, y)
 
     # from sklearn.externals import joblib
