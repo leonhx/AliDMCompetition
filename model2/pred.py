@@ -105,7 +105,7 @@ class AdaBoost:
         y[y <= len(self.__clfs__)/2] = 0
         y[y > len(self.__clfs__)/2] = 1
         return y
-    def fit(X, y):
+    def fit(self, X, y):
         _ = [clf.fit(X, y) for clf in self.__clfs__]
 
 def ada_boost(clf_list):
