@@ -33,3 +33,13 @@ AliDMCompetition
 See https://www.google.com.hk/search?q=data+mining+time+series&ie=utf-8&oe=utf-8&aq=t for more.
 
 Chapter 1 MINING TIME SERIES DATA - ResearchGate
+
+
+Model List
+----------
+
+model2, LinearSVC
+
+    Precision: 0.046473
+    Recall:    0.063433
+    F1 Score:  0.053645
