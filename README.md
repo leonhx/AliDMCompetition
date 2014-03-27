@@ -38,7 +38,7 @@ Chapter 1 MINING TIME SERIES DATA - ResearchGate
 Model List
 ----------
 
-model2, LinearSVC
+model2, LinearSVC(C=10, loss='l1')
 
     Precision: 0.046473
     Recall:    0.063433
