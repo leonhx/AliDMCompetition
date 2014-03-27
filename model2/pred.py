@@ -105,8 +105,8 @@ if __name__ == '__main__':
 
     X, y = extract_feature(data, poly_kernel, get_train_instances)
 
-    from sklearn.svm import SVC
-    clf = SVC(C=10000, kernel='rbf', gamma=0.001)
+    from sklearn.svm import LinearSVC
+    clf = LinearSVC(C=10, loss='l1')
     clf.fit(X, y)
 
     # from sklearn.externals import joblib
