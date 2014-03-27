@@ -43,3 +43,16 @@ model2, LinearSVC(C=10, loss='l1')
     Precision: 0.046473
     Recall:    0.063433
     F1 Score:  0.053645
+
+
+model2, LogisticRegression(penalty='l1')
+
+    Precision: 0.049242
+    Recall:    0.058209
+    F1 score:  0.053352
+
+model2, Perceptron(penalty='l1')
+
+    Precision: 0.039648
+    Recall:    0.080597
+    F1 score:  0.053150
