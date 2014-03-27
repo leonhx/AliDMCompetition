@@ -2,9 +2,6 @@
 # -*- coding: utf-8 -*-
 
 import numpy as np
-from sklearn.grid_search import GridSearchCV
-from sklearn.svm import SVC
-from sklearn.externals import joblib
 
 import sys
 import os
@@ -104,28 +101,31 @@ if __name__ == '__main__':
         os.path.split(os.path.split(os.path.abspath(__file__))[0])[0],
         'data', 'train_data.npy')
     data = np.load(data_path)
-    # poly_kernel = time_poly(alpha=0.5, n=1)
+    poly_kernel = time_poly(alpha=0.5, n=1)
 
-    # X, y = extract_feature(data, poly_kernel, get_train_instances)
-    # clf = SVC(C=10000, kernel='rbf', gamma=0.001)
-    # clf.fit(X, y)
+    X, y = extract_feature(data, poly_kernel, get_train_instances)
 
-    # # clf = joblib.load(
-    # #     os.path.join(
-    # #         os.path.split(os.path.abspath(__file__))[0],
-    # #         'rbf.C=10.gamma=0.001.svc'))
-    # pred_X, ub = extract_feature(data, poly_kernel, get_pred_instance)
-    # y = clf.predict(pred_X)
-    # ub = ub[y == 1]
+    from sklearn.svm import SVC
+    clf = SVC(C=10000, kernel='rbf', gamma=0.001)
+    clf.fit(X, y)
 
-    # pred_result = {}
-    # for ui, bi in ub:
-    #     pred_result.setdefault(ui, set())
-    #     pred_result[ui].add(bi)
-    # import pickle
-    # f = open(
+    # from sklearn.externals import joblib
+    # clf = joblib.load(
     #     os.path.join(
-    #         os.path.split(os.path.abspath(__file__))[0], 'pred_result.pkl'),
-    #     'w')
-    # pickle.dump(pred_result, f)
-    # f.close()
+    #         os.path.split(os.path.abspath(__file__))[0],
+    #         'rbf.C=10.gamma=0.001.svc'))
+    pred_X, ub = extract_feature(data, poly_kernel, get_pred_instance)
+    y = clf.predict(pred_X)
+    ub = ub[y == 1]
+
+    pred_result = {}
+    for ui, bi in ub:
+        pred_result.setdefault(ui, set())
+        pred_result[ui].add(bi)
+    import pickle
+    f = open(
+        os.path.join(
+            os.path.split(os.path.abspath(__file__))[0], 'pred_result.pkl'),
+        'w')
+    pickle.dump(pred_result, f)
+    f.close()
