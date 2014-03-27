@@ -96,6 +96,21 @@ def extract_feature(data, kernel, get_instances):
             ys += ys_
     return np.array(xs), np.array(ys)
 
+class AdaBoost:
+    def __init__(self, clf_list):
+        self.__clfs__ = clf_list
+    def predict(self, X):
+        ys = [clf.predict(X) for clf in self.__clfs__]
+        y = sum(ys)
+        y[y <= len(self.__clfs__)/2] = 0
+        y[y > len(self.__clfs__)/2] = 1
+        return y
+    def fit(X, y):
+        _ = [clf.fit(X, y) for clf in self.__clfs__]
+
+def ada_boost(clf_list):
+    return AdaBoost(clf_list)
+
 if __name__ == '__main__':
     data_path = os.path.join(
         os.path.split(os.path.split(os.path.abspath(__file__))[0])[0],
@@ -106,7 +121,14 @@ if __name__ == '__main__':
     X, y = extract_feature(data, poly_kernel, get_train_instances)
 
     from sklearn.svm import LinearSVC
-    clf = LinearSVC(C=10, loss='l1')
+    svc = LinearSVC(C=10, loss='l1')
+
+    from sklearn.linear_model import LogisticRegression, Perceptron, PassiveAggressiveClassifier
+    lr = LogisticRegression(penalty='l1')
+    pc = Perceptron(penalty='l1')
+    pa = PassiveAggressiveClassifier(C=1, loss='hinge')
+
+    clf = ada_boost([svc, lr, pc, pa])
     clf.fit(X, y)
 
     # from sklearn.externals import joblib
