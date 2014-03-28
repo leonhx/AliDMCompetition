@@ -6,6 +6,7 @@ import numpy as np
 import os
 
 class SGM:
+    """Session-based Graph Model"""
     def __init__(self):
         pass
     def fit(self, X):
@@ -15,7 +16,6 @@ class SGM:
             [user_id, brand_id, type, visit_datetime],
             ...
         ])
-        and type is 1 in all cases
         """
         pass
     def predict(self):
