@@ -7,7 +7,7 @@ import math
 import os
 
 class ItemCF:
-    def __init__(self, penalty=None, topK=80, rankN=10):
+    def __init__(self, penalty=None, normalize=False, topK=80, rankN=10):
         self.__K__ = topK
         self.__N__ = rankN
         if penalty:
@@ -16,6 +16,7 @@ class ItemCF:
             self.__similarity__ = self.__cosine_iuf__
         else:
             self.__similarity__ = self.__cosine__
+        self.__normalize__ = normalize
     def __cosine__(self, train):
         """
         train:
@@ -95,6 +96,12 @@ class ItemCF:
             train.setdefault(u, {})
             train[u][i] = r
         W = self.__similarity__(train)
+        if self.__normalize__:
+            for i, items in W.items():
+                max_wij = max(W[i].values()) if W[i] else 1
+                for j in W[i]:
+                    W[i][j] = W[i][j]*1. / max_wij
+
         for u in train:
             rank.setdefault(u, {})
             interacted_items = train[u]
@@ -139,7 +146,7 @@ if __name__ == '__main__':
         'data', 'train_data.npy')
     data = np.load(data_path)
 
-    icf = ItemCF(penalty='iuf')
+    icf = ItemCF(penalty='iuf', normalize=True)
     # ucf = UserCF(topK=80)
     icf.fit(extract_data(data))
 
