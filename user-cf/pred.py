@@ -7,7 +7,7 @@ import math
 import os
 
 class UserCF:
-    def __init__(self, similar='jaccard', topK=80):
+    def __init__(self, similar='jaccard', penalty=None, topK=80, rankN=10):
         if similar == 'jaccard':
             self.__similarity__ = self.__jaccard__
         elif similar == 'cosine':
@@ -15,6 +15,13 @@ class UserCF:
         else:
             raise ValueError('No such similarity method: %s' % similar)
         self.__K__ = topK
+        self.__N__ = rankN
+        if penalty:
+            if similar == 'jaccard':
+                raise ValueError('Penalty method should not be specified to similarity method jaccard')
+            if penalty != 'iif':
+                raise ValueError('No such penalty method: %s' % penalty)
+            self.__similarity__ = self.__cosine_iif__
     def __jaccard__(self, train):
         """
         train:
@@ -89,6 +96,41 @@ class UserCF:
                 W[u][v] = cuv*1. / math.sqrt(N[u] * N[v])
 
         return W
+    def __cosine_iif__(self, train):
+        """
+        train:
+        { user_id: {
+                    item_id: score,
+                    ...
+                    }
+        ...
+        }
+        """
+        item_users = {}
+        for u, items in train.items():
+            for i in items.keys():
+                item_users.setdefault(i, set())
+                item_users[i].add(u)
+
+        C = {}
+        N = {}
+        for i, users in item_users.items():
+            for u in users:
+                N.setdefault(u, 0)
+                N[u] += 1
+                C.setdefault(u, {})
+                for v in users:
+                    if u != v:
+                        C[u].setdefault(v, 0)
+                        C[u][v] += 1. / math.log(1 + len(users))
+
+        W = {}
+        for u, related_users in C.items():
+            W.setdefault(u, {})
+            for v, cuv in related_users.items():
+                W[u][v] = cuv*1. / math.sqrt(N[u] * N[v])
+
+        return W
     def fit(self, X):
         """
         X:
@@ -122,7 +164,7 @@ class UserCF:
         self.__recomm__ = []
         self.__rating__ = []
         for u, items in rank.items():
-            for i, r in items.items():
+            for i, r in sorted(items.items(), key=lambda i: i[1], reverse=True)[:self.__N__]:
                 self.__recomm__.append([u, i])
                 self.__rating__.append(r)
         self.__recomm__ = np.array(self.__recomm__)
@@ -154,11 +196,11 @@ if __name__ == '__main__':
         'data', 'train_data.npy')
     data = np.load(data_path)
 
-    ucf = UserCF(similar='cosine', topK=60)
+    ucf = UserCF(similar='cosine', topK=60, rankN=10, penalty='iif')
     # ucf = UserCF(topK=80)
     ucf.fit(extract_data(data))
 
-    ub, r = ucf.predict(threshold=0.2)
+    ub, r = ucf.predict(threshold=0.1)
     print(len(ub))
 
     pred_result = {}
