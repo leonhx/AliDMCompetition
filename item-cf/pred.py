@@ -11,9 +11,9 @@ class ItemCF:
         self.__K__ = topK
         self.__N__ = rankN
         if penalty:
-            if penalty != 'iif':
+            if penalty != 'iuf':
                 raise ValueError('No such penalty method: %s' % penalty)
-            self.__similarity__ = self.__cosine_iif__
+            self.__similarity__ = self.__cosine_iuf__
         else:
             self.__similarity__ = self.__cosine__
     def __cosine__(self, train):
@@ -45,7 +45,7 @@ class ItemCF:
                 W[i][j] = cij*1. / math.sqrt(N[i] * N[j])
 
         return W
-    def __cosine_iif__(self, train):
+    def __cosine_iuf__(self, train):
         """
         train:
         { user_id: {
@@ -139,7 +139,7 @@ if __name__ == '__main__':
         'data', 'train_data.npy')
     data = np.load(data_path)
 
-    icf = ItemCF(penalty='iif')
+    icf = ItemCF(penalty='iuf')
     # ucf = UserCF(topK=80)
     icf.fit(extract_data(data))
 
