@@ -7,7 +7,7 @@ import math
 import os
 
 class ItemCF:
-    def __init__(self, penalty=None, normalize=False, topK=80, rankN=10):
+    def __init__(self, penalty=None, normalize=False, alpha=0.5, topK=80, rankN=10):
         self.__K__ = topK
         self.__N__ = rankN
         if penalty:
@@ -17,11 +17,12 @@ class ItemCF:
         else:
             self.__similarity__ = self.__cosine__
         self.__normalize__ = normalize
+        self.__alpha__ = alpha
     def __cosine__(self, train):
         """
         train:
         { user_id: {
-                    item_id: score,
+                    item_id: visit_datetime,
                     ...
                     }
         ...
@@ -30,14 +31,14 @@ class ItemCF:
         C = {}
         N = {}
         for u, items in train.items():
-            for i in items:
+            for i, tui in items.items():
                 N.setdefault(i, 0)
                 N[i] += 1
                 C.setdefault(i, {})
-                for j in items:
+                for j, tuj in items.items():
                     if i != j:
                         C[i].setdefault(j, 0)
-                        C[i][j] += 1
+                        C[i][j] += 1. / (1 + self.__alpha__ * abs(tui - tuj))
 
         W = {}
         for i, related_items in C.items():
@@ -50,7 +51,7 @@ class ItemCF:
         """
         train:
         { user_id: {
-                    item_id: score,
+                    brand_id: visit_datetime,
                     ...
                     }
         ...
@@ -59,14 +60,14 @@ class ItemCF:
         C = {}
         N = {}
         for u, items in train.items():
-            for i in items:
+            for i, tui in items.items():
                 N.setdefault(i, 0)
                 N[i] += 1
                 C.setdefault(i, {})
-                for j in items:
+                for j, tuj in items.items():
                     if i != j:
                         C[i].setdefault(j, 0)
-                        C[i][j] += 1. / math.log(1 + len(items))
+                        C[i][j] += 1. / (1 + self.__alpha__ * abs(tui - tuj)) / math.log(1 + len(items))
 
         W = {}
         for i, related_items in C.items():
@@ -79,22 +80,17 @@ class ItemCF:
         """
         X:
         numpy.array([
-            [user, item, rating],
+            [user_id, brand_id, type, visit_datetime],
             ...
         ])
-        or
-        numpy.array([
-            [user, item],
-            ...
-        ])
+        and type is 1 in all cases
         """
-        if X.shape[1] == 2:
-            X = np.c_[X, np.ones((len(X),), dtype=X.dtype)]
         rank = {}
         train = {}
-        for u, i, r in X:
-            train.setdefault(u, {})
-            train[u][i] = r
+        for u, i, t, d in X:
+            if t == 1:
+                train.setdefault(u, {})
+                train[u][i] = d
         W = self.__similarity__(train)
         if self.__normalize__:
             for i, items in W.items():
@@ -105,11 +101,11 @@ class ItemCF:
         for u in train:
             rank.setdefault(u, {})
             interacted_items = train[u]
-            for i, pi in interacted_items.items():
-                for j, wj in sorted(W[i].items(), key=lambda i: i[1], reverse=True)[:self.__K__]:
-                    if j not in interacted_items:
+            for i, t0 in interacted_items.items():
+                for j, tuj in sorted(W[i].items(), key=lambda i: i[1], reverse=True)[:self.__K__]:
+                    if (j, tuj) not in interacted_items.items():
                         rank[u].setdefault(j, 0.0)
-                        rank[u][j] += wj * pi
+                        rank[u][j] += 1. / (1 + self.__alpha__ * abs(t0 - tuj))
 
         self.__recomm__ = []
         self.__rating__ = []
@@ -119,7 +115,7 @@ class ItemCF:
                 self.__rating__.append(r)
         self.__recomm__ = np.array(self.__recomm__)
         self.__rating__ = np.array(self.__rating__)
-    def predict(self, threshold=0):
+    def predict(self):
         """
         parameter:
             threshold: only output the predictions of which the rating is
@@ -127,18 +123,19 @@ class ItemCF:
         returns:
             numpy.array([
                 [user, item],
+                [user, item],
                 ...
             ]),
             numpy.array([
                 rating,
+                rating,
                 ...
             ])
         """
-        choice = self.__rating__ > threshold
-        return self.__recomm__[choice], self.__rating__[choice]
+        return self.__recomm__, self.__rating__
 
 def extract_data(data):
-    return data[data[:, 2] == 1, :2]
+    return data[data[:, 2] == 1]
 
 if __name__ == '__main__':
     data_path = os.path.join(
@@ -150,7 +147,8 @@ if __name__ == '__main__':
     # ucf = UserCF(topK=80)
     icf.fit(extract_data(data))
 
-    ub, r = icf.predict(threshold=0.1)
+    ub, r = icf.predict()
+    ub = ub
     print(len(ub))
 
     pred_result = {}
