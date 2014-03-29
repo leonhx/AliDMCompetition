@@ -131,11 +131,6 @@ if __name__ == '__main__':
     clf = ada_boost([svc, lr, pc, pa])
     clf.fit(X, y)
 
-    # from sklearn.externals import joblib
-    # clf = joblib.load(
-    #     os.path.join(
-    #         os.path.split(os.path.abspath(__file__))[0],
-    #         'rbf.C=10.gamma=0.001.svc'))
     pred_X, ub = extract_feature(data, poly_kernel, get_pred_instance)
     y = clf.predict(pred_X)
     ub = ub[y == 1]
