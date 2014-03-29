@@ -5,6 +5,59 @@ import numpy as np
 
 import os
 
+class STG:
+    """STG is a directed bipartite graph G(U, S, I, E, w):
+    U          - the set of user nodes,
+    S          - the set of session nodes,
+    I          - the set of item nodes,
+    E          - the set of edges,
+    w : E -> R - anon-negative weight function for edges
+    N[u]       - all items viewed by the user u
+    N[u, t]    - all items viewed by the user u at time t
+    """
+    def __init__(self, train, eta_u=1, eta_s=1):
+        """train:
+        numpy.array([
+            [user_id, brand_id, type, visit_datetime],
+            ...
+        ])
+eta_u:
+        weight of edges from Item to User
+eta_s:
+        weight of edges from Item to Session
+        """
+        self.__G__ = {}
+        self.__U__ = set()
+        self.__S__ = set()
+        self.__I__ = set()
+        self.__E__ = set()
+        self.__w__ = {}
+        self.__N__ = {}
+        for u, i, _, t in train:
+            self.__U__.add(u)
+            self.__S__.add((u, t))
+            self.__I__.add(i)
+            self.__E__.update([(u, i), (i, u), ((u, t), i), (i, (u, t))])
+            self.__w__[u, i] = 1
+            self.__w__[(u, t), i] = 1
+            self.__w__[i, u] = eta_u
+            self.__w__[i, (u, t)] = eta_s
+            self.__N__.setdefault(u, set())
+            self.__N__[u].add(i)
+            self.__N__.setdefault((u, t), set())
+            self.__N__[u, t].add(i)
+            self.__G__.setdefault(u, {})
+            self.__G__[u][i] = self.__w__[u, i]
+            self.__G__.setdefault(i, {})
+            self.__G__[i][u] = self.__w__[i, u]
+            self.__G__[i][u, t] = self.__w__[i, (u, t)]
+            self.__G__.setdefault((u, t), {})
+            self.__G__[u, t][i] = self.__w__[(u, t), i]
+    def G(self):
+        return self.__G__
+    def edge_weights(self):
+        return self.__w__
+
 class SGM:
     """Session-based Graph Model"""
     def __init__(self):
