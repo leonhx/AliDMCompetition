@@ -102,8 +102,8 @@ class AdaBoost:
     def predict(self, X):
         ys = [clf.predict(X) for clf in self.__clfs__]
         y = sum(ys)
-        y[y <= len(self.__clfs__)/2] = 0
-        y[y > len(self.__clfs__)/2] = 1
+        y[y <= 1] = 0
+        y[y > 1] = 1
         return y
     def fit(self, X, y):
         _ = [clf.fit(X, y) for clf in self.__clfs__]
