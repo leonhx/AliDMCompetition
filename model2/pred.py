@@ -3,6 +3,7 @@
 
 import numpy as np
 
+import datetime
 import sys
 import os
 sys.path.append(
@@ -10,6 +11,8 @@ sys.path.append(
         os.path.split(os.path.split(os.path.abspath(__file__))[0])[0],
         'data'))
 import preprocess as pre
+
+BOUND = pre.date2int(datetime.date(pre.YEAR, 7, 16))
 
 def sort_by(data, order=['user_id', 'brand_id', 'visit_datetime']):
     actype = np.dtype({
@@ -72,7 +75,7 @@ def get_train_instances(ub_data, kernel):
             ys.append(y)
             i = buy_ix + 1
         else:
-            rec = use_kernel(kernel, ub_data, pre.BOUND, not_util=True)
+            rec = use_kernel(kernel, ub_data, BOUND, not_util=True)
             if rec is not None:
                 x, y = rec
                 xs.append(x)
@@ -81,7 +84,7 @@ def get_train_instances(ub_data, kernel):
     return xs, ys
 
 def get_pred_instance(ub_data, kernel):
-    return [kernel(ub_data, pre.BOUND)], [np.array([ub_data[0, 0], ub_data[0, 1]])]
+    return [kernel(ub_data, BOUND)], [np.array([ub_data[0, 0], ub_data[0, 1]])]
 
 def extract_feature(data, kernel, get_instances):
     sort_by(data)
@@ -111,38 +114,38 @@ class AdaBoost:
 def ada_boost(clf_list):
     return AdaBoost(clf_list)
 
-if __name__ == '__main__':
-    data_path = os.path.join(
-        os.path.split(os.path.split(os.path.abspath(__file__))[0])[0],
-        'data', 'train_data.npy')
-    data = np.load(data_path)
-    poly_kernel = time_poly(alpha=0.5, n=1)
+# if __name__ == '__main__':
+    # data_path = os.path.join(
+    #     os.path.split(os.path.split(os.path.abspath(__file__))[0])[0],
+    #     'data', 'train_data.npy')
+    # data = np.load(data_path)
+    # poly_kernel = time_poly(alpha=0.5, n=1)
 
-    X, y = extract_feature(data, poly_kernel, get_train_instances)
+    # X, y = extract_feature(data, poly_kernel, get_train_instances)
 
-    from sklearn.svm import LinearSVC
-    svc = LinearSVC(C=10, loss='l1')
+    # from sklearn.svm import LinearSVC
+    # svc = LinearSVC(C=10, loss='l1')
 
-    from sklearn.linear_model import LogisticRegression, Perceptron, PassiveAggressiveClassifier
-    lr = LogisticRegression(penalty='l1')
-    pc = Perceptron(penalty='l1')
-    pa = PassiveAggressiveClassifier(C=1, loss='hinge')
+    # from sklearn.linear_model import LogisticRegression, Perceptron, PassiveAggressiveClassifier
+    # lr = LogisticRegression(penalty='l1')
+    # pc = Perceptron(penalty='l1')
+    # pa = PassiveAggressiveClassifier(C=1, loss='hinge')
 
-    clf = ada_boost([svc, lr, pc, pa])
-    clf.fit(X, y)
+    # clf = ada_boost([svc, lr, pc, pa])
+    # clf.fit(X, y)
 
-    pred_X, ub = extract_feature(data, poly_kernel, get_pred_instance)
-    y = clf.predict(pred_X)
-    ub = ub[y == 1]
+    # pred_X, ub = extract_feature(data, poly_kernel, get_pred_instance)
+    # y = clf.predict(pred_X)
+    # ub = ub[y == 1]
 
-    pred_result = {}
-    for ui, bi in ub:
-        pred_result.setdefault(ui, set())
-        pred_result[ui].add(bi)
-    import pickle
-    f = open(
-        os.path.join(
-            os.path.split(os.path.abspath(__file__))[0], 'pred_result.pkl'),
-        'w')
-    pickle.dump(pred_result, f)
-    f.close()
+    # pred_result = {}
+    # for ui, bi in ub:
+    #     pred_result.setdefault(ui, set())
+    #     pred_result[ui].add(bi)
+    # import pickle
+    # f = open(
+    #     os.path.join(
+    #         os.path.split(os.path.abspath(__file__))[0], 'pred_result.pkl'),
+    #     'w')
+    # pickle.dump(pred_result, f)
+    # f.close()
