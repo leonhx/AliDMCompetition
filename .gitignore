@@ -39,4 +39,5 @@ nosetests.xml
 *.pdf
 
 *.pkl
+*.npy
 
