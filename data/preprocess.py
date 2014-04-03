@@ -4,6 +4,7 @@
 import numpy as np
 import datetime
 import re
+import os
 
 YEAR = 2013
 START_DATE = datetime.date(YEAR, 1, 1)
@@ -16,6 +17,9 @@ def date_parser(s):
     return date_delta.days
 
 if __name__ == '__main__':
-    raw_data = np.loadtxt('t_alibaba_data.csv', dtype=int, delimiter=',', converters={3: date_parser}, skiprows=1)
+    current_dir = os.path.split(os.path.abspath(__file__))[0]
+    data_path = os.path.join(current_dir, 't_alibaba_data.csv')
+    raw_data = np.loadtxt(data_path, dtype=int, delimiter=',', converters={3: date_parser}, skiprows=1)
 
-    np.save('raw_data', raw_data)
+    target_path = os.path.join(os.path.join(current_dir, 'raw_data.npy'))
+    np.save(target_path, raw_data)
