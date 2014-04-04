@@ -115,7 +115,7 @@ class SGM:
         rho is a parameter to tune the impact of the out-degree in the
         propagation process.
 
-    min_distance: int, optional (default=3)
+    min_distance: int, optional (default=3), should be odd
         only paths whose distace is no smaller than min_distance will be
         considered
 
@@ -228,4 +228,4 @@ def extract_data(data):
     return data[data[:, 2] == 1]
 
 def get_model():
-    return SGM()
+    return SGM(method='ms-ipf', topN=20, eta_u=1, eta_s=1, beta=0.5, rho=1, min_distance=3, time_interval=3)
