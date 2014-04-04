@@ -22,7 +22,7 @@ Arguments
 Note
 ----
 
-There should be a global variable named `model` in pred.py, which is
+There should be a function named `get_model` in pred.py, which returns
 a properly initialized model object.
 
 A model object should have at least two methods: `fit` and `predict`.
@@ -35,6 +35,7 @@ ndarray:
 """
 
 import numpy as np
+import pylab as pl
 
 import sys
 import os
@@ -74,19 +75,52 @@ def f1(pred_result, test_result, all_userids):
 def test():
     if len(sys.argv) < 3:
         raise LookupError('Please specify model to test.')
+    test_cases = [
+        (prep.date(5, 16), prep.date(6, 16), 'predicts 5/16 to 6/16', '5/16'),
+        (prep.date(6, 16), prep.date(7, 16), 'predicts 6/16 to 7/16', '6/16'),
+        (prep.date(7, 16), prep.date(8, 16), 'predicts 7/16 to 8/16', '7/16'),
+    ]
     for model in sys.argv[2:]:
-        sys_path = sys.path
+        sys_path = sys.path[:]
         model_path = os.path.join(current_dir, model)
         sys.path.append(model_path)
         import pred
-        # TODO
-        # all_userids = np.load(train_data_path)[:, 0]
-        # p, r, f = f1(pred_result, test_result, all_userids)
-        # print_test_result(model, p, r, f)
+        print('======')
+        print('Model:\t%s' % model)
+        Ps = []
+        Rs = []
+        Fs = []
+        for TRAIN_DATE, TEST_DATE, DESC, _ in test_cases:
+            model = pred.get_model()
+            train_data = all_data[all_data[:, 3] < TRAIN_DATE]
+            model.fit(train_data)
+            pred_result = ndarray2dict(model.predict())
+            test_data = all_data[np.logical_and(
+                all_data[:, 3] >= TRAIN_DATE,
+                all_data[:, 3] < TEST_DATE,
+                )]
+            test_result = test_data[:, :2]
+            all_userids = train_data[:, 0]
+            p, r, f = f1(pred_result, test_result, all_userids)
+            Ps.append(p)
+            Rs.append(r)
+            F1s.append(f)
+            print('******')
+            print(DESC)
+            print('Precision:\t%f' % p)
+            print('Recall:\t%f' % r)
+            print('F1 Score:\t%f' % f)
+        pl.figure(model)
+        pl.plot(range(len(test_cases)), Ps)
+        pl.plot(range(len(test_cases)), Rs)
+        pl.plot(range(len(test_cases)), Fs)
+        pl.legend(('Precision', 'Recall', 'F1 Score'))
+        pl.xticks(range(len(test_cases)), [i[3] for i in test_cases])
+        pl.show()
         sys.path = sys_path
 
 def gen():
-    sys_path = sys.path
+    sys_path = sys.path[:]
     if len(sys.argv) < 3:
         raise LookupError('Please specify model result to transfer.')
     elif len(sys.argv) > 3:
@@ -94,8 +128,9 @@ def gen():
     model_path = os.path.join(current_dir, sys.argv[2])
     sys.path.append(model_path)
     import pred
-    pred.model.fit(all_data)
-    pred_result = ndarray2dict(pred.model.predict())
+    model = pred.get_model()
+    model.fit(all_data)
+    pred_result = ndarray2dict(model.predict())
     lines = []
     for u, items in pred_result.items():
         line = '{0}\t{1}\n'.format(u, ','.join([str(i) for i in items]))
