@@ -8,9 +8,9 @@ import os
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.abspath(os.path.join(current_dir, '..', 'data')))
-import preprocess as pre
+import prep
 
-BOUND = pre.date(7, 16)
+BOUND = prep.date(7, 16)
 
 def sort_by(data, order=['user_id', 'brand_id', 'visit_datetime']):
     actype = np.dtype({
