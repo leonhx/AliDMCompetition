@@ -28,7 +28,8 @@ a properly initialized model object.
 A model object should have at least two methods: `fit` and `predict`.
 `fit` accepts a ndarray as parameter, of which column = [user_id, brand_id,
 type, visit_datetime], and it returns nothing.
-`predict` does not need parameter, and it should return a tuple of two
+`predict` accepts a time unit as parameter, which stands for now, and it
+should return a tuple of two
 ndarray:
     the first one: shape = [n_results, 2], column=[user_id, item_id]
     the second one: shape = [n_results], rating score of each corresponding prediction
@@ -95,7 +96,7 @@ def test():
             model = pred.get_model()
             train_data = all_data[all_data[:, 3] < TRAIN_DATE]
             model.fit(train_data)
-            pred_result = ndarray2dict(model.predict())
+            pred_result = ndarray2dict(model.predict(TRAIN_DATE-1))
             test_data = all_data[np.logical_and(
                 all_data[:, 3] >= TRAIN_DATE,
                 all_data[:, 3] < TEST_DATE,
@@ -131,7 +132,7 @@ def gen():
     import pred
     model = pred.get_model()
     model.fit(all_data)
-    pred_result = ndarray2dict(model.predict())
+    pred_result = ndarray2dict(model.predict(prep.date(8, 15)))
     lines = []
     for u, items in pred_result.items():
         line = '{0}\t{1}\n'.format(u, ','.join([str(i) for i in items]))
