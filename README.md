@@ -27,6 +27,12 @@ AliDMCompetition
 上传的结果文件名字不限(20字以内)，文件必须为txt格式。
 
 
+预测结果
+--------
+
+真实购买记录一共有3526条
+
+
 参考论文
 --------
 
@@ -35,7 +41,7 @@ See https://www.google.com.hk/search?q=data+mining+time+series&ie=utf-8&oe=utf-8
 Chapter 1 MINING TIME SERIES DATA - ResearchGate
 
 
-Model List
+模型列表
 ----------
 
 model2, LinearSVC(C=10, loss='l1')
