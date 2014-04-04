@@ -56,6 +56,12 @@ def ndarray2dict(ndarray):
         result[u].add(i)
     return result
 
+def dict_size(dictionary):
+    size = 0
+    for i in dictionary:
+        size += len(dictionary[i])
+    return size
+
 def f1(pred_result, test_result, all_userids):
     """
     pred_result has the same format as test_result:
@@ -72,7 +78,7 @@ def f1(pred_result, test_result, all_userids):
     assert 0 < p <= 1
     r = hitBrands * 1. / bBrands
     assert 0 < r <= 1
-    return (p, r, 2.*p*r/(p+r))
+    return p, r, 2.*p*r/(p+r)
 
 def test():
     if len(sys.argv) < 3:
@@ -96,11 +102,15 @@ def test():
             model = pred.get_model()
             train_data = all_data[all_data[:, 3] < TRAIN_DATE]
             model.fit(train_data)
-            pred_result = ndarray2dict(model.predict(TRAIN_DATE-1)[0])
+            predictions, _ = model.predict(TRAIN_DATE-1)
+            pred_result = ndarray2dict(predictions)
             test_data = all_data[np.logical_and(
-                all_data[:, 3] >= TRAIN_DATE,
-                all_data[:, 3] < TEST_DATE,
-                )]
+                all_data[:, 2] == 1,
+                np.logical_and(
+                    all_data[:, 3] >= TRAIN_DATE,
+                    all_data[:, 3] < TEST_DATE
+                )
+            )]
             test_result = ndarray2dict(test_data[:, :2])
             all_userids = np.unique(train_data[:, 0])
             p, r, f = f1(pred_result, test_result, all_userids)
@@ -111,6 +121,8 @@ def test():
             print('Precision: %f' % p)
             print('Recall:    %f' % r)
             print('F1 Score:  %f' % f)
+            print('# Pred:    %d' % dict_size(pred_result))
+            print('# Real:    %d' % dict_size(test_result))
         pl.figure(model_name)
         pl.plot(range(len(test_cases)), Ps)
         pl.plot(range(len(test_cases)), Rs)
@@ -132,8 +144,8 @@ def gen():
     model = pred.get_model()
     model.fit(all_data)
     predictions, _ = model.predict(prep.date(8, 15))
-    print('Get %d predictions' % len(predictions))
     pred_result = ndarray2dict(predictions)
+    print('Get %d predictions' % dict_size(pred_result))
     lines = []
     for u, items in pred_result.items():
         line = '{0}\t{1}\n'.format(u, ','.join([str(i) for i in items]))
