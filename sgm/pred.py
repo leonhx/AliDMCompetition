@@ -1,11 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-import numpy as np
-
-import sys
-import os
-
 class STG:
     """STG is a directed bipartite graph G(U, S, I, E, w):
     U          - the set of user nodes,
