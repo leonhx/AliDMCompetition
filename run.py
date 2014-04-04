@@ -43,6 +43,7 @@ import datetime
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
 data_path = os.path.join(current_dir, 'data')
+sys.path.append(data_path)
 import prep
 
 all_data = np.load(os.path.join(data_path, 'raw_data.npy'))
