@@ -64,7 +64,7 @@ def f1(pred_result, test_result, all_userids):
     """
     pBrands = sum([len(pred_result[ui]) for ui in pred_result])
     hitBrands = 0
-    for ui in np.unique(all_userids):
+    for ui in all_userids:
         if ui in pred_result and ui in test_result:
             hitBrands += len(pred_result[ui].intersection(test_result[ui]))
     bBrands = sum([len(test_result[ui]) for ui in test_result])
@@ -82,13 +82,13 @@ def test():
         (prep.date(6, 16), prep.date(7, 16), 'predicts 6/16 to 7/16', '6/16'),
         (prep.date(7, 16), prep.date(8, 16), 'predicts 7/16 to 8/16', '7/16'),
     ]
-    for model in sys.argv[2:]:
+    for model_name in sys.argv[2:]:
         sys_path = sys.path[:]
-        model_path = os.path.join(current_dir, model)
+        model_path = os.path.join(current_dir, model_name)
         sys.path.append(model_path)
         import pred
         print('======')
-        print('Model:\t%s' % model)
+        print('Model:\t%s' % model_name)
         Ps = []
         Rs = []
         Fs = []
@@ -96,23 +96,23 @@ def test():
             model = pred.get_model()
             train_data = all_data[all_data[:, 3] < TRAIN_DATE]
             model.fit(train_data)
-            pred_result = ndarray2dict(model.predict(TRAIN_DATE-1))
+            pred_result = ndarray2dict(model.predict(TRAIN_DATE-1)[0])
             test_data = all_data[np.logical_and(
                 all_data[:, 3] >= TRAIN_DATE,
                 all_data[:, 3] < TEST_DATE,
                 )]
-            test_result = test_data[:, :2]
-            all_userids = train_data[:, 0]
+            test_result = ndarray2dict(test_data[:, :2])
+            all_userids = np.unique(train_data[:, 0])
             p, r, f = f1(pred_result, test_result, all_userids)
             Ps.append(p)
             Rs.append(r)
-            F1s.append(f)
+            Fs.append(f)
             print('******')
             print(DESC)
             print('Precision:\t%f' % p)
             print('Recall:\t%f' % r)
             print('F1 Score:\t%f' % f)
-        pl.figure(model)
+        pl.figure(model_name)
         pl.plot(range(len(test_cases)), Ps)
         pl.plot(range(len(test_cases)), Rs)
         pl.plot(range(len(test_cases)), Fs)
