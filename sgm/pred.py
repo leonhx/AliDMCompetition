@@ -6,10 +6,6 @@ import numpy as np
 import sys
 import os
 
-current_dir = os.path.dirname(os.path.abspath(__file__))
-sys.path.append(os.path.abspath(os.path.join(current_dir, '..', 'data')))
-import preprocess as pre
-
 class STG:
     """STG is a directed bipartite graph G(U, S, I, E, w):
     U          - the set of user nodes,
@@ -44,6 +40,9 @@ class STG:
         self.__w__ = {}
         self.__N__ = {}
         for u, i, _, t in train:
+            u = int(u)
+            i = int(i)
+            t = int(t)
             t = t/time_interval
             self.__U__.add(u)
             self.__S__.add((u, t))
@@ -202,7 +201,8 @@ class SGM:
         X: numpy.array, column = [user_id, brand_id, type, visit_datetime]
             Training set.
         """
-        self.__stg__ = STG(X, self.__eta_u__, self.__eta_s__, self.__time_interval__)
+        self.__stg__ = STG(extract_data(X), self.__eta_u__, self.__eta_s__,
+            self.__time_interval__)
     def predict(self, now):
         """Perform recommendations
 
@@ -226,3 +226,6 @@ class SGM:
 
 def extract_data(data):
     return data[data[:, 2] == 1]
+
+def get_model():
+    return SGM()
