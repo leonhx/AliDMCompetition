@@ -3,7 +3,6 @@
 
 import numpy as np
 
-import datetime
 import sys
 import os
 sys.path.append(
@@ -12,7 +11,7 @@ sys.path.append(
         'data'))
 import preprocess as pre
 
-BOUND = pre.date2int(datetime.date(pre.YEAR, 7, 16))
+BOUND = pre.date(7, 16)
 
 def sort_by(data, order=['user_id', 'brand_id', 'visit_datetime']):
     actype = np.dtype({
