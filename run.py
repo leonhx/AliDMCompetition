@@ -131,12 +131,15 @@ def gen():
     import pred
     model = pred.get_model()
     model.fit(all_data)
-    pred_result = ndarray2dict(model.predict(prep.date(8, 15)))
+    predictions, _ = model.predict(prep.date(8, 15))
+    print('Get %d predictions' % len(predictions))
+    pred_result = ndarray2dict(predictions)
     lines = []
     for u, items in pred_result.items():
         line = '{0}\t{1}\n'.format(u, ','.join([str(i) for i in items]))
         lines.append(line)
-    target_path = os.path.join(current_dir, 'result{0}.txt'.format(date.today().day))
+    from datetime import date
+    target_path = os.path.join(current_dir, 'result%02d.txt'%date.today().day)
     f = open(target_path, 'w')
     f.writelines(lines)
     f.close()
