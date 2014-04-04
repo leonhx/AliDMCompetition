@@ -5,10 +5,9 @@ import numpy as np
 
 import sys
 import os
-sys.path.append(
-    os.path.join(
-        os.path.split(os.path.split(os.path.abspath(__file__))[0])[0],
-        'data'))
+
+current_dir = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(os.path.abspath(os.path.join(current_dir, '..', 'data')))
 import preprocess as pre
 
 BOUND = pre.date(7, 16)

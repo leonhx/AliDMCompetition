@@ -5,10 +5,9 @@ import numpy as np
 
 import sys
 import os
-sys.path.append(
-    os.path.join(
-        os.path.split(os.path.split(os.path.abspath(__file__))[0])[0],
-        'data'))
+
+current_dir = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(os.path.abspath(os.path.join(current_dir, '..', 'data')))
 import preprocess as pre
 
 class STG:
@@ -227,29 +226,3 @@ class SGM:
 
 def extract_data(data):
     return data[data[:, 2] == 1]
-
-if __name__ == '__main__':
-    data_path = os.path.join(
-        os.path.split(os.path.split(os.path.abspath(__file__))[0])[0],
-        'data', 'train_data.npy')
-    data = np.load(data_path)
-
-    sgm = SGM(topN=20, eta_u=1, eta_s=1, beta=0.5, rho=1, min_distance=3, time_interval=3)
-    sgm.fit(extract_data(data))
-
-    ub, r = sgm.predict(pre.BOUND)
-    ub = ub[r > 0.]
-    print(len(ub))
-
-    pred_result = {}
-    for ui, bi in ub:
-        pred_result.setdefault(ui, set())
-        pred_result[ui].add(bi)
-    import pickle
-    f = open(
-        os.path.join(
-            os.path.split(os.path.abspath(__file__))[0], 'pred_result.pkl'),
-        'w')
-    pickle.dump(pred_result, f)
-    f.close()
-

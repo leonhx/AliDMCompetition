@@ -3,7 +3,7 @@
 
 import os
 
-data_dir = os.path.split(os.path.abspath(__file__))[0]
+data_dir = os.path.dirname(os.path.abspath(__file__))
 csv_data_path = os.path.join(data_dir, 't_alibaba_data.csv')
 raw_data_path = os.path.join(os.path.join(data_dir, 'raw_data.npy'))
 
