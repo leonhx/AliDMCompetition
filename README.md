@@ -36,7 +36,7 @@ AliDMCompetition
 TODO
 ----
 
-1. 在model2的基础上做LR。
+1. 在model2的基础上做LR。再做一个样本提取得更加合理的LR。
 
 2. 在UserCF和ItemCF上加上时间因子的影响。
 
@@ -45,6 +45,8 @@ TODO
 
 4. 在ItemCF的思路上挖掘频繁项集/购买模式，如购买品牌A和商品后往往会购买
 品牌B的商品
+
+*NOTE*: 注意调整正负样本比例
 
 
 参考论文
