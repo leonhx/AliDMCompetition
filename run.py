@@ -79,9 +79,9 @@ def val():
     if len(sys.argv) < 3:
         raise LookupError('Please specify model to val.')
     val_cases = [
-        (prep.date(5, 16), prep.date(6, 16), 'predicts 5/16 to 6/16', '5/16'),
-        (prep.date(6, 16), prep.date(7, 16), 'predicts 6/16 to 7/16', '6/16'),
-        (prep.date(7, 16), prep.date(8, 16), 'predicts 7/16 to 8/16', '7/16'),
+        (prep.date(5, 18), prep.date(6, 17), 'predicts 5/18 to 6/17', '5/18'),
+        (prep.date(6, 17), prep.date(7, 17), 'predicts 6/17 to 7/17', '6/17'),
+        (prep.date(7, 17), prep.date(8, 16), 'predicts 7/17 to 8/16', '7/17'),
     ]
     for model_name in sys.argv[2:]:
         sys_path = sys.path[:]
