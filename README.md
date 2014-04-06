@@ -66,36 +66,70 @@ Chapter 1 MINING TIME SERIES DATA - ResearchGate
 模型列表
 ----------
 
-model2, LinearSVC(C=10, loss='l1')
+LR(model=LinearSVC(C=10, loss='l1'), alpha=0.7, degree=1)
 
-    Precision: 0.046473
-    Recall:    0.063433
-    F1 Score:  0.053645
+    |         TOTAL   VISITED BOUGHT  FAVO    CART    NEW
+    | Pred #  1438    1436    626     71      12
+    |      %  100%    99.861% 43.533% 4.937%  0.834%
+    | Real #  1311    250     89      10      1
+    |      %  100%    19.069% 6.789%  0.763%  0.076%
+    Hit #  76
+    Precision  5.285118%
+    Recall     5.797101%
+    F1 Score   5.529283%
 
-
-model2, LogisticRegression(penalty='l1')
-
-    Precision: 0.049242
-    Recall:    0.058209
-    F1 score:  0.053352
-
-
-model2, Perceptron(penalty='l1')
-
-    Precision: 0.039648
-    Recall:    0.080597
-    F1 score:  0.053150
+这个模型在数据标成变成2次后，Precision ~ 16%，同时F1 ~ 3%
 
 
-model2, PassiveAggressiveClassifier(C=1, loss='hinge')
+LR(model=LogisticRegression(penalty='l1'), alpha=0.7, degree=1)
 
-    Precision: 0.044615
-    Recall:    0.064925
-    F1 score:  0.052888
+    |         TOTAL   VISITED BOUGHT  FAVO    CART    NEW
+    | Pred #  1472    1470    615     68      14
+    |      %  100%    99.864% 41.780% 4.620%  0.951%
+    | Real #  1311    250     89      10      1
+    |      %  100%    19.069% 6.789%  0.763%  0.076%
+    Hit #  74
+    Precision  5.027174%
+    Recall     5.644546%
+    F1 Score   5.318002%
+
+这个模型在数据标成变成2次后，Recall > 8%，同时F1 > 5%
+
+
+LR(model=Perceptron(penalty='l1'), alpha=0.7, degree=1)
+
+    |         TOTAL   VISITED BOUGHT  FAVO    CART    NEW
+    | Pred #  3145    3140    1023    130     26
+    |      %  100%    99.841% 32.528% 4.134%  0.827%
+    | Real #  1311    250     89      10      1
+    |      %  100%    19.069% 6.789%  0.763%  0.076%
+    Hit #  113
+    Precision  3.593005%
+    Recall     8.619375%
+    F1 Score   5.071813%
+
+
+LR(model=PassiveAggressiveClassifier(C=1, loss='hinge'), alpha=0.7, degree=1)
+
+    |         TOTAL   VISITED BOUGHT  FAVO    CART    NEW
+    | Pred #  2608    2603    823     119     22
+    |      %  100%    99.808% 31.557% 4.563%  0.844%
+    | Real #  1311    250     89      10      1
+    |      %  100%    19.069% 6.789%  0.763%  0.076%
+    Hit #  98
+    Precision  3.757669%
+    Recall     7.475210%
+    F1 Score   5.001276%
 
 
 model2, PassiveAggressiveClassifier(C=1, loss='squared_hinge')
 
-    Precision: 0.025883
-    Recall:    0.094030
-    F1 score:  0.040593
+    |         TOTAL   VISITED BOUGHT  FAVO    CART    NEW
+    | Pred #  5172    5161    1408    203     29
+    |      %  100%    99.787% 27.224% 3.925%  0.561%
+    | Real #  1311    250     89      10      1
+    |      %  100%    19.069% 6.789%  0.763%  0.076%
+    Hit #  129
+    Precision  2.494200%
+    Recall     9.839817%
+    F1 Score   3.979639%
