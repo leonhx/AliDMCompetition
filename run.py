@@ -27,7 +27,7 @@ a properly initialized model object.
 
 A model object should have at least two methods: `fit` and `predict`.
 `fit`: ndarray(column=[user_id, brand_id, type, visit_datetime]) -> None
-`predict`: int (time unit, stands for now) -> (ndarray(column=[user_id, item_id]), ndarray(column = [rating]))
+`predict`: int (time now) -> (ndarray(column=[user_id, item_id]), ndarray(column = [rating]))
 """
 
 import numpy as np
