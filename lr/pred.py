@@ -16,6 +16,8 @@ class LR:
     """
     Parameters
     ----------
+    model: An object which has interfaces `fit' and `predict'
+
     alpha: float, optional(default=1.0)
         Penalty factor with respect to time
 
@@ -24,7 +26,7 @@ class LR:
 
     """
     def __init__(self, model, alpha=1.0, degree=2):
-        self.__poly_kernel__ = time_poly(alpha=0.5, n=1)
+        self.__poly_kernel__ = time_poly(alpha=alpha, n=degree)
         self.__model__ = model
     def fit(self, X):
         self.__data__ = X
@@ -38,7 +40,7 @@ class LR:
 
 def get_model():
     from sklearn.svm import LinearSVC
-    return LR(model=LinearSVC(C=10, loss='l1'), alpha=0.5, degree=1)
+    return LR(model=LinearSVC(C=10, loss='l1'), alpha=0.7, degree=1)
 
 def sort_by(data, order=['user_id', 'brand_id', 'visit_datetime']):
     actype = np.dtype({
