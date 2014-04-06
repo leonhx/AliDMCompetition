@@ -26,13 +26,8 @@ There should be a function named `get_model` in pred.py, which returns
 a properly initialized model object.
 
 A model object should have at least two methods: `fit` and `predict`.
-`fit` accepts a ndarray as parameter, of which column = [user_id, brand_id,
-type, visit_datetime], and it returns nothing.
-`predict` accepts a time unit as parameter, which stands for now, and it
-should return a tuple of two
-ndarray:
-    the first one: shape = [n_results, 2], column=[user_id, item_id]
-    the second one: shape = [n_results], rating score of each corresponding prediction
+`fit`: ndarray(column=[user_id, brand_id, type, visit_datetime]) -> None
+`predict`: int (time unit, stands for now) -> (ndarray(column=[user_id, item_id]), ndarray(column = [rating]))
 """
 
 import numpy as np
