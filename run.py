@@ -111,11 +111,11 @@ def print_basic_result(p, r, f):
     print('F1 Score:  {:f}%'.format(f*100))
 
 def print_result_stats(pred_stats, real_stats, p):
-    print('|        TOTAL   VISITED BOUGHT  FAVO    CART    NEW')
-    print('| #Pred: {:<8}{:<8}{:<8}{:<8}{:<8}'.format(*pred_stats))
-    print('| %Pred: {:<8.0%}{:<8.3%}{:<8.3%}{:<8.3%}{:<8.3%}'.format(*[i*1./pred_stats[0] for i in pred_stats]))
-    print('| #Real: {:<8}{:<8}{:<8}{:<8}{:<8}'.format(*real_stats))
-    print('| %Real: {:<8.0%}{:<8.3%}{:<8.3%}{:<8.3%}{:<8.3%}'.format(*[i*1./real_stats[0] for i in real_stats]))
+    print('|         TOTAL   VISITED BOUGHT  FAVO    CART    NEW')
+    print('| Pred #  {:<8}{:<8}{:<8}{:<8}{:<8}'.format(*pred_stats))
+    print('|      %  {:<8.0%}{:<8.3%}{:<8.3%}{:<8.3%}{:<8.3%}'.format(*[i*1./pred_stats[0] for i in pred_stats]))
+    print('| Real #  {:<8}{:<8}{:<8}{:<8}{:<8}'.format(*real_stats))
+    print('|      %  {:<8.0%}{:<8.3%}{:<8.3%}{:<8.3%}{:<8.3%}'.format(*[i*1./real_stats[0] for i in real_stats]))
     print('#Hit:  %d' % round(pred_stats[0]*p))
 
 def plot_result(model_name, val_cases, Ps, Rs, Fs):
@@ -199,9 +199,9 @@ def gen():
     import pred
     pred_result = get_pred(pred.get_model(), all_data, prep.date(8, 15))
     pred_stats = stats(pred_result, all_data)
-    print('|        TOTAL   VISITED BOUGHT  FAVO    CART    NEW')
-    print('| #Pred: {:<8}{:<8}{:<8}{:<8}{:<8}'.format(*pred_stats))
-    print('| %Pred: {:<8.0%}{:<8.3%}{:<8.3%}{:<8.3%}{:<8.3%}'.format(*[i*1./pred_stats[0] for i in pred_stats]))
+    print('|         TOTAL   VISITED BOUGHT  FAVO    CART    NEW')
+    print('| Pred #  {:<8}{:<8}{:<8}{:<8}{:<8}'.format(*pred_stats))
+    print('|      %  {:<8.0%}{:<8.3%}{:<8.3%}{:<8.3%}{:<8.3%}'.format(*[i*1./pred_stats[0] for i in pred_stats]))
     from datetime import date
     target_path = os.path.join(current_dir, 'result%02d.txt'%date.today().day)
     output(target_path, pred_result)
