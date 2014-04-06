@@ -75,21 +75,48 @@ def f1(pred_result, val_result, all_userids):
     assert 0 < r <= 1
     return p, r, 2.*p*r/(p+r)
 
-def print_header(model_name):
+def stats(result, data):
+    """
+    result: dict
+        key: user_id
+        value: set of brand_id
+    data: ndarray, column=[user_id, brand_id, type, visit_datetime]
+    """
+    total = dict_size(result)
+    visit = bought = favo = cart = new = 0
+    for ui in result:
+        u_result = result[ui]
+        u_data = data[data[:, 0] == ui]
+        uv_brands = set(u_data[u_data[:, 2] == 0, 1])
+        ub_brands = set(u_data[u_data[:, 2] == 1, 1])
+        uf_brands = set(u_data[u_data[:, 2] == 2, 1])
+        uc_brands = set(u_data[u_data[:, 2] == 3, 1])
+        visit += len(u_result.intersection(uv_brands))
+        bought += len(u_result.intersection(ub_brands))
+        favo += len(u_result.intersection(uf_brands))
+        cart += len(u_result.intersection(uc_brands))
+        new += len(u_result.difference(set(u_data[:, 1])))
+    return total, visit, bought, favo, cart, new
+
+def print_model_header(model_name):
     print('======')
     print('Model:\t%s' % model_name)
 
-def print_result(pred_result, val_result, description, p, r, f):
-    pred_count = dict_size(pred_result)
-    real_count = dict_size(val_result)
-    assert round(pred_count * p) == round(real_count * r)
+def print_result_header(description):
     print('****** %s' % description)
+
+def print_basic_result(p, r, f):
     print('Precision: {:f}%'.format(p*100))
     print('Recall:    {:f}%'.format(r*100))
     print('F1 Score:  {:f}%'.format(f*100))
-    print('# Real:    %d' % real_count)
-    print('# Pred:    %d' % pred_count)
-    print('# Hit:     %d' % round(pred_count*p))
+
+def print_result_stats(pred_stats, real_stats, p):
+    print('|        TOTAL   VISITED BOUGHT  FAVO    CART    NEW')
+    print('| #Pred: {:<8}{:<8}{:<8}{:<8}{:<8}'.format(*pred_stats))
+    print('| %Pred: {:<8.0%}{:<8.3%}{:<8.3%}{:<8.3%}{:<8.3%}'.format(*[i*1./pred_stats[0] for i in pred_stats]))
+    print('| #Real: {:<8}{:<8}{:<8}{:<8}{:<8}'.format(*real_stats))
+    print('| %Real: {:<8.0%}{:<8.3%}{:<8.3%}{:<8.3%}{:<8.3%}'.format(*[i*1./real_stats[0] for i in real_stats]))
+    print('#Hit:  %d' % round(pred_stats[0]*p))
 
 def plot_result(model_name, val_cases, Ps, Rs, Fs):
     pl.figure(model_name)
@@ -100,6 +127,19 @@ def plot_result(model_name, val_cases, Ps, Rs, Fs):
     pl.legend(('Precision', 'Recall', 'F1 Score'))
     pl.xticks(x, [i[3] for i in val_cases])
     pl.show()
+
+def get_pred(model, data, bound_date):
+    model.fit(data)
+    predictions, _ = model.predict(bound_date)
+    return ndarray2dict(predictions)
+
+def get_val(val_data, val_userids):
+    raw_val_data = val_data[val_data[:, 2] == 1]
+    real_bought = []
+    for u, b, _, _ in raw_val_data:
+        if u in val_userids:
+            real_bought.append([u, b])
+    return ndarray2dict(real_bought)
 
 def val():
     if len(sys.argv) < 3:
@@ -115,32 +155,38 @@ def val():
         sys.path.append(model_path)
         import pred
         reload(pred)
-        print_header(model_name)
+        print_model_header(model_name)
         Ps = []
         Rs = []
         Fs = []
-        for TRAIN_DATE, TEST_DATE, DESC, _ in val_cases:
-            model = pred.get_model()
+        for TRAIN_DATE, VAL_DATE, DESC, _ in val_cases:
             train_data = all_data[all_data[:, 3] < TRAIN_DATE]
-            model.fit(train_data)
-            predictions, _ = model.predict(TRAIN_DATE-1)
-            pred_result = ndarray2dict(predictions)
             val_data = all_data[np.logical_and(
-                all_data[:, 2] == 1,
-                np.logical_and(
-                    all_data[:, 3] >= TRAIN_DATE,
-                    all_data[:, 3] < TEST_DATE
-                )
+                all_data[:, 3] >= TRAIN_DATE,
+                all_data[:, 3] < VAL_DATE
             )]
-            val_result = ndarray2dict(val_data[:, :2])
             all_userids = np.unique(train_data[:, 0])
+            pred_result = get_pred(pred.get_model(), train_data, TRAIN_DATE-1)
+            val_result = get_val(val_data, all_userids)
             p, r, f = f1(pred_result, val_result, all_userids)
             Ps.append(p)
             Rs.append(r)
             Fs.append(f)
-            print_result(pred_result, val_result, DESC, p, r, f)
+            print_result_header(DESC)
+            print_result_stats(stats(pred_result, train_data),
+                stats(val_result, train_data), p)
+            print_basic_result(p, r, f)
         plot_result(model_name, val_cases, Ps, Rs, Fs)
         sys.path = sys_path
+
+def output(filename, pred_result):
+    lines = []
+    for u, items in pred_result.items():
+        line = '{0}\t{1}\n'.format(u, ','.join([str(i) for i in items]))
+        lines.append(line)
+    f = open(filename, 'w')
+    f.writelines(lines)
+    f.close()
 
 def gen():
     sys_path = sys.path[:]
@@ -151,20 +197,14 @@ def gen():
     model_path = os.path.join(current_dir, sys.argv[2])
     sys.path.append(model_path)
     import pred
-    model = pred.get_model()
-    model.fit(all_data)
-    predictions, _ = model.predict(prep.date(8, 15))
-    pred_result = ndarray2dict(predictions)
-    print('Get %d predictions' % dict_size(pred_result))
-    lines = []
-    for u, items in pred_result.items():
-        line = '{0}\t{1}\n'.format(u, ','.join([str(i) for i in items]))
-        lines.append(line)
+    pred_result = get_pred(pred.get_model(), all_data, prep.date(8, 15))
+    pred_stats = stats(pred_result, all_data)
+    print('|        TOTAL   VISITED BOUGHT  FAVO    CART    NEW')
+    print('| #Pred: {:<8}{:<8}{:<8}{:<8}{:<8}'.format(*pred_stats))
+    print('| %Pred: {:<8.0%}{:<8.3%}{:<8.3%}{:<8.3%}{:<8.3%}'.format(*[i*1./pred_stats[0] for i in pred_stats]))
     from datetime import date
     target_path = os.path.join(current_dir, 'result%02d.txt'%date.today().day)
-    f = open(target_path, 'w')
-    f.writelines(lines)
-    f.close()
+    output(target_path, pred_result)
     sys.path = sys_path
 
 if __name__ == '__main__':
