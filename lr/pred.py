@@ -5,7 +5,7 @@ import numpy as np
 
 import sys
 import os
-current_dir = os.path.dirname(os.path.abspath(__file))
+current_dir = os.path.dirname(os.path.abspath(__file__))
 data_path = os.path.abspath(os.path.join(current_dir, '..', 'data'))
 sys.path.append(data_path)
 import prep
@@ -13,15 +13,32 @@ import prep
 BOUND = prep.date(7, 16)
 
 class LR:
-    def __init__(self):
-        pass
+    """
+    Parameters
+    ----------
+    alpha: float, optional(default=1.0)
+        Penalty factor with respect to time
+
+    degree: int, optional(default=2)
+        Penalty degree on time interval
+
+    """
+    def __init__(self, model, alpha=1.0, degree=2):
+        self.__poly_kernel__ = time_poly(alpha=0.5, n=1)
+        self.__model__ = model
     def fit(self, X):
-        pass
+        self.__data__ = X
     def predict(self, time_now):
-        pass
+        X, y = extract_feature(self.__data__, self.__poly_kernel__, get_train_instances, time_now)
+        self.__model__.fit(X, y)
+        pred_X, ub = extract_feature(self.__data__, self.__poly_kernel__, get_pred_instance, time_now)
+        y = self.__model__.predict(pred_X)
+        predictions = ub[y == 1]
+        return predictions, np.ones((len(predictions,)))
 
 def get_model():
-    return LR()
+    from sklearn.svm import LinearSVC
+    return LR(model=LinearSVC(C=10, loss='l1'), alpha=0.5, degree=1)
 
 def sort_by(data, order=['user_id', 'brand_id', 'visit_datetime']):
     actype = np.dtype({
@@ -58,17 +75,17 @@ def time_poly(alpha=1.0, n=2):
         return np.array([click_inf, buy_inf, favo_inf, cart_inf])
     return poly
 
-def use_kernel(kernel, data, buy_date, not_util=False):
+def use_kernel(kernel, data, bound_date, not_util=False):
     y = 1
     if not_util:
-        data = data[data[:, 3] < buy_date - 30]
+        data = data[data[:, 3] < bound_date - 30]
         if data.shape[0] == 0:
             return None
-    if not_util or buy_date - data[-1, 3] > 30:
+    if not_util or bound_date - data[-1, 3] > 30:
         y = 0
-    return kernel(data, buy_date), y
+    return kernel(data, bound_date), y
 
-def get_train_instances(ub_data, kernel):
+def get_train_instances(ub_data, kernel, bound_date):
     whether_buy = ub_data[:, 2] == 1
     xs = []
     ys = []
@@ -84,7 +101,7 @@ def get_train_instances(ub_data, kernel):
             ys.append(y)
             i = buy_ix + 1
         else:
-            rec = use_kernel(kernel, ub_data, BOUND, not_util=True)
+            rec = use_kernel(kernel, ub_data, bound_date, not_util=True)
             if rec is not None:
                 x, y = rec
                 xs.append(x)
@@ -92,10 +109,10 @@ def get_train_instances(ub_data, kernel):
             break
     return xs, ys
 
-def get_pred_instance(ub_data, kernel):
-    return [kernel(ub_data, BOUND)], [np.array([ub_data[0, 0], ub_data[0, 1]])]
+def get_pred_instance(ub_data, kernel, bound_date):
+    return [kernel(ub_data, bound_date)], [np.array([ub_data[0, 0], ub_data[0, 1]])]
 
-def extract_feature(data, kernel, get_instances):
+def extract_feature(data, kernel, get_instances, bound_date):
     sort_by(data)
     xs = []
     ys = []
@@ -103,43 +120,7 @@ def extract_feature(data, kernel, get_instances):
         u_data = data[data[:, 0] == ui]
         for bi in np.unique(u_data[:, 1]):
             ub_data = u_data[u_data[:, 1] == bi]
-            xs_, ys_ = get_instances(ub_data, kernel)
+            xs_, ys_ = get_instances(ub_data, kernel, bound_date)
             xs += xs_
             ys += ys_
     return np.array(xs), np.array(ys)
-
-class AdaBoost:
-    def __init__(self, clf_list):
-        self.__clfs__ = clf_list
-    def predict(self, X):
-        ys = [clf.predict(X) for clf in self.__clfs__]
-        y = sum(ys)
-        y[y <= 1] = 0
-        y[y > 1] = 1
-        return y
-    def fit(self, X, y):
-        _ = [clf.fit(X, y) for clf in self.__clfs__]
-
-def ada_boost(clf_list):
-    return AdaBoost(clf_list)
-
-if __name__ == '__main__':
-    data = np.load(data_path)
-    poly_kernel = time_poly(alpha=0.5, n=1)
-
-    X, y = extract_feature(data, poly_kernel, get_train_instances)
-
-    from sklearn.svm import LinearSVC
-    svc = LinearSVC(C=10, loss='l1')
-
-    from sklearn.linear_model import LogisticRegression, Perceptron, PassiveAggressiveClassifier
-    lr = LogisticRegression(penalty='l1')
-    pc = Perceptron(penalty='l1')
-    pa = PassiveAggressiveClassifier(C=1, loss='hinge')
-
-    clf = ada_boost([svc, lr, pc, pa])
-    clf.fit(X, y)
-
-    pred_X, ub = extract_feature(data, poly_kernel, get_pred_instance)
-    y = clf.predict(pred_X)
-    ub = ub[y == 1]
