@@ -106,9 +106,9 @@ def print_result_header(description):
     print('****** %s' % description)
 
 def print_basic_result(p, r, f):
-    print('Precision: {:f}%'.format(p*100))
-    print('Recall:    {:f}%'.format(r*100))
-    print('F1 Score:  {:f}%'.format(f*100))
+    print('Precision  {:f}%'.format(p*100))
+    print('Recall     {:f}%'.format(r*100))
+    print('F1 Score   {:f}%'.format(f*100))
 
 def print_result_stats(pred_stats, real_stats, p):
     print('|         TOTAL   VISITED BOUGHT  FAVO    CART    NEW')
@@ -116,7 +116,7 @@ def print_result_stats(pred_stats, real_stats, p):
     print('|      %  {:<8.0%}{:<8.3%}{:<8.3%}{:<8.3%}{:<8.3%}'.format(*[i*1./pred_stats[0] for i in pred_stats]))
     print('| Real #  {:<8}{:<8}{:<8}{:<8}{:<8}'.format(*real_stats))
     print('|      %  {:<8.0%}{:<8.3%}{:<8.3%}{:<8.3%}{:<8.3%}'.format(*[i*1./real_stats[0] for i in real_stats]))
-    print('#Hit:  %d' % round(pred_stats[0]*p))
+    print('Hit #  %d' % round(pred_stats[0]*p))
 
 def plot_result(model_name, val_cases, Ps, Rs, Fs):
     pl.figure(model_name)
