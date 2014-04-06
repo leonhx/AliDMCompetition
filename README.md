@@ -78,8 +78,6 @@ LR(model=LinearSVC(C=10, loss='l1'), alpha=0.7, degree=1)
     Recall     5.797101%
     F1 Score   5.529283%
 
-这个模型在数据标成变成2次后，Precision ~ 16%，同时F1 ~ 3%
-
 
 LR(model=LogisticRegression(penalty='l1'), alpha=0.7, degree=1)
 
@@ -93,7 +91,7 @@ LR(model=LogisticRegression(penalty='l1'), alpha=0.7, degree=1)
     Recall     5.644546%
     F1 Score   5.318002%
 
-这个模型在数据标成变成2次后，Recall > 8%，同时F1 > 5%
+这个模型在数据变成2次后，Precision ~ 16%，同时F1 ~ 3%
 
 
 LR(model=Perceptron(penalty='l1'), alpha=0.7, degree=1)
