@@ -83,8 +83,8 @@ def print_result(pred_result, val_result, description, p, r, f):
     print('Precision: {:f}%'.format(p*100))
     print('Recall:    {:f}%'.format(r*100))
     print('F1 Score:  {:f}%'.format(f*100))
-    print('# Pred:    %d' % pred_count)
     print('# Real:    %d' % real_count)
+    print('# Pred:    %d' % pred_count)
     print('# Hit:     %d' % round(pred_count*p))
 
 def plot_result(model_name, val_cases, Ps, Rs, Fs):
