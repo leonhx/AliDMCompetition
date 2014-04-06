@@ -10,8 +10,6 @@ data_path = os.path.abspath(os.path.join(current_dir, '..', 'data'))
 sys.path.append(data_path)
 import prep
 
-BOUND = prep.date(7, 16)
-
 class LR:
     """
     Parameters
