@@ -12,6 +12,17 @@ import prep
 
 BOUND = prep.date(7, 16)
 
+class LR:
+    def __init__(self):
+        pass
+    def fit(self, X):
+        pass
+    def predict(self, time_now):
+        pass
+
+def get_model():
+    return LR()
+
 def sort_by(data, order=['user_id', 'brand_id', 'visit_datetime']):
     actype = np.dtype({
         'names': ['user_id', 'brand_id', 'type', 'visit_datetime'],
