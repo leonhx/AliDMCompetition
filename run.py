@@ -75,6 +75,10 @@ def f1(pred_result, val_result, all_userids):
     assert 0 < r <= 1
     return p, r, 2.*p*r/(p+r)
 
+def print_header(model_name):
+    print('======')
+    print('Model:\t%s' % model_name)
+
 def print_result(pred_result, val_result, description, p, r, f):
     pred_count = dict_size(pred_result)
     real_count = dict_size(val_result)
@@ -89,11 +93,12 @@ def print_result(pred_result, val_result, description, p, r, f):
 
 def plot_result(model_name, val_cases, Ps, Rs, Fs):
     pl.figure(model_name)
-    pl.plot(range(len(val_cases)), Ps)
-    pl.plot(range(len(val_cases)), Rs)
-    pl.plot(range(len(val_cases)), Fs)
+    x = range(len(val_cases))
+    pl.plot(x, Ps)
+    pl.plot(x, Rs)
+    pl.plot(x, Fs)
     pl.legend(('Precision', 'Recall', 'F1 Score'))
-    pl.xticks(range(len(val_cases)), [i[3] for i in val_cases])
+    pl.xticks(x, [i[3] for i in val_cases])
     pl.show()
 
 def val():
@@ -110,8 +115,7 @@ def val():
         sys.path.append(model_path)
         import pred
         reload(pred)
-        print('======')
-        print('Model:\t%s' % model_name)
+        print_header(model_name)
         Ps = []
         Rs = []
         Fs = []
