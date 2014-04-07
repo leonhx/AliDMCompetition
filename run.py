@@ -95,7 +95,7 @@ def stats(result, data):
         bought += len(u_result.intersection(ub_brands))
         favo += len(u_result.intersection(uf_brands))
         cart += len(u_result.intersection(uc_brands))
-        new += len(u_result.difference(set(u_data[:, 1])))
+        new += len(u_result.difference(set(u_data[u_data[:, 0] == ui, 1])))
     return total, visit, bought, favo, cart, new
 
 def print_model_header(model_name):
@@ -112,10 +112,10 @@ def print_basic_result(p, r, f):
 
 def print_result_stats(pred_stats, real_stats, p):
     print('|         TOTAL   VISITED BOUGHT  FAVO    CART    NEW')
-    print('| Pred #  {:<8}{:<8}{:<8}{:<8}{:<8}'.format(*pred_stats))
-    print('|      %  {:<8.0%}{:<8.3%}{:<8.3%}{:<8.3%}{:<8.3%}'.format(*[i*1./pred_stats[0] for i in pred_stats]))
-    print('| Real #  {:<8}{:<8}{:<8}{:<8}{:<8}'.format(*real_stats))
-    print('|      %  {:<8.0%}{:<8.3%}{:<8.3%}{:<8.3%}{:<8.3%}'.format(*[i*1./real_stats[0] for i in real_stats]))
+    print('| Pred #  {:<8}{:<8}{:<8}{:<8}{:<8}{:<8}'.format(*pred_stats))
+    print('|      %  {:<8.0%}{:<8.3%}{:<8.3%}{:<8.3%}{:<8.3%}{:<8.3%}'.format(*[i*1./pred_stats[0] for i in pred_stats]))
+    print('| Real #  {:<8}{:<8}{:<8}{:<8}{:<8}{:<8}'.format(*real_stats))
+    print('|      %  {:<8.0%}{:<8.3%}{:<8.3%}{:<8.3%}{:<8.3%}{:<8.3%}'.format(*[i*1./real_stats[0] for i in real_stats]))
     print('Hit #  %d' % round(pred_stats[0]*p))
 
 def plot_result(model_name, val_cases, Ps, Rs, Fs):
@@ -200,8 +200,8 @@ def gen():
     pred_result = get_pred(pred.get_model(), all_data, prep.date(8, 15))
     pred_stats = stats(pred_result, all_data)
     print('|         TOTAL   VISITED BOUGHT  FAVO    CART    NEW')
-    print('| Pred #  {:<8}{:<8}{:<8}{:<8}{:<8}'.format(*pred_stats))
-    print('|      %  {:<8.0%}{:<8.3%}{:<8.3%}{:<8.3%}{:<8.3%}'.format(*[i*1./pred_stats[0] for i in pred_stats]))
+    print('| Pred #  {:<8}{:<8}{:<8}{:<8}{:<8}{:<8}'.format(*pred_stats))
+    print('|      %  {:<8.0%}{:<8.3%}{:<8.3%}{:<8.3%}{:<8.3%}{:<8.3%}'.format(*[i*1./pred_stats[0] for i in pred_stats]))
     from datetime import date
     target_path = os.path.join(current_dir, 'result%02d.txt'%date.today().day)
     output(target_path, pred_result)
