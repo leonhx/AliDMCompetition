@@ -117,9 +117,9 @@ def print_basic_result(p, r, f, pred_ratings, hit_ratings):
     print('Recall     {:f}%'.format(r*100))
     print('F1 Score   {:f}%'.format(f*100))
     print('Ratings mean    stdvar')
-    pl.figure('Rating Scores Distribution - Pred')
+    pl.figure('Rating Distribution - Pred')
     pl.hist(pred_ratings)
-    pl.figure('Rating Scores Distribution - Hit')
+    pl.figure('Rating Distribution - Hit')
     pl.hist(hit_ratings)
     pl.show()
 
