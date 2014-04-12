@@ -57,23 +57,30 @@ def dict_size(dictionary):
         size += len(dictionary[i])
     return size
 
-def f1(pred_result, val_result, all_userids):
+def f1(pred_result, val_result, all_userids, raw):
     """
     pred_result has the same format as val_result:
         key: user_id
         value: set of brand_id
     """
+    hits = []
     pBrands = sum([len(pred_result[ui]) for ui in pred_result])
     hitBrands = 0
     for ui in all_userids:
         if ui in pred_result and ui in val_result:
-            hitBrands += len(pred_result[ui].intersection(val_result[ui]))
+            hit = pred_result[ui].intersection(val_result[ui])
+            for bi in hit:
+                rating = raw[1][np.logical_and(
+                    raw[0][:, 0] == ui,
+                    raw[0][:, 1] == bi)]
+                hits.append(rating)
+            hitBrands += len(hit)
     bBrands = sum([len(val_result[ui]) for ui in val_result])
     p = hitBrands * 1. / pBrands
     assert 0 < p <= 1
     r = hitBrands * 1. / bBrands
     assert 0 < r <= 1
-    return p, r, 2.*p*r/(p+r)
+    return p, r, 2.*p*r/(p+r), raw[1], np.array(hits)
 
 def stats(result, data):
     """
@@ -105,10 +112,16 @@ def print_model_header(model_name):
 def print_result_header(description):
     print('****** %s' % description)
 
-def print_basic_result(p, r, f):
+def print_basic_result(p, r, f, pred_ratings, hit_ratings):
     print('Precision  {:f}%'.format(p*100))
     print('Recall     {:f}%'.format(r*100))
     print('F1 Score   {:f}%'.format(f*100))
+    print('Ratings mean    stdvar')
+    pl.figure('Rating Scores Distribution - Pred')
+    pl.hist(pred_ratings)
+    pl.figure('Rating Scores Distribution - Hit')
+    pl.hist(hit_ratings)
+    pl.show()
 
 def print_result_stats(pred_stats, real_stats, p):
     print('|         TOTAL   VISITED BOUGHT  FAVO    CART    NEW')
@@ -130,8 +143,8 @@ def plot_result(model_name, val_cases, Ps, Rs, Fs):
 
 def get_pred(model, data, bound_date):
     model.fit(data)
-    predictions, _ = model.predict(bound_date)
-    return ndarray2dict(predictions)
+    predictions, ratings = model.predict(bound_date)
+    return ndarray2dict(predictions), (predictions, ratings)
 
 def get_val(val_data, val_userids):
     raw_val_data = val_data[val_data[:, 2] == 1]
@@ -166,16 +179,16 @@ def val():
                 all_data[:, 3] < VAL_DATE
             )]
             all_userids = np.unique(train_data[:, 0])
-            pred_result = get_pred(pred.get_model(), train_data, TRAIN_DATE-1)
+            pred_result, raw = get_pred(pred.get_model(), train_data, TRAIN_DATE-1)
             val_result = get_val(val_data, all_userids)
-            p, r, f = f1(pred_result, val_result, all_userids)
+            p, r, f, pred_ratings, hit_ratings = f1(pred_result, val_result, all_userids, raw)
             Ps.append(p)
             Rs.append(r)
             Fs.append(f)
             print_result_header(DESC)
             print_result_stats(stats(pred_result, train_data),
                 stats(val_result, train_data), p)
-            print_basic_result(p, r, f)
+            print_basic_result(p, r, f, pred_ratings, hit_ratings)
         plot_result(model_name, val_cases, Ps, Rs, Fs)
         sys.path = sys_path
 
@@ -197,7 +210,7 @@ def gen():
     model_path = os.path.join(current_dir, sys.argv[2])
     sys.path.append(model_path)
     import pred
-    pred_result = get_pred(pred.get_model(), all_data, prep.date(8, 15))
+    pred_result, _ = get_pred(pred.get_model(), all_data, prep.date(8, 15))
     pred_stats = stats(pred_result, all_data)
     print('|         TOTAL   VISITED BOUGHT  FAVO    CART    NEW')
     print('| Pred #  {:<8}{:<8}{:<8}{:<8}{:<8}{:<8}'.format(*pred_stats))
