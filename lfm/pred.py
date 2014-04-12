@@ -52,22 +52,46 @@ class LFM:
                 for _, _, action, time in ub_data:
                     score += self.__scores__[action]
                 new_X.append([ui, bi, score])
-        return np.array(new_X)
+        return new_X
+    def __predict__(self, u, i):
+        return sum(self.__P__[u][f] * self.__Q__[i][f] \
+            for f in range(self.__F__))
     def __init_LFM__(self, train):
         import random, math
         self.__P__ = {}
         self.__Q__ = {}
         for u, i, rui in train:
             if u not in self.__P__:
-                self.__P__[u] = [ random.random()/math.sqrt(F) \
-                    for x in range(0, self.__F__) ]
+                self.__P__[u] = [ random.random()/math.sqrt(self.__F__) \
+                    for _ in range(self.__F__) ]
             if i not in self.__Q__:
-                self.__Q__ = [ random.random()/math.sqrt(F) \
-                    for x in range(0, self.__F__) ]
+                self.__Q__[i] = [ random.random()/math.sqrt(self.__F__) \
+                    for _ in range(self.__F__) ]
     def fit(self, train):
-        self.__init_LFM__(self.__extract__(train))
+        train = self.__extract__(train)
+        self.__init_LFM__(train)
+        alpha = self.__alpha__
+        for _ in range(0, self.__max_iter__):
+            print _
+            for u, i, rui in train:
+                pui = self.__predict__(u, i)
+                eui = rui - pui
+                for f in range(self.__F__):
+                    self.__P__[u][f] += self.__alpha__ * (self.__Q__[i][f] * eui - self.__lambda__ * self.__P__[u][f])
+                    self.__Q__[i][f] += self.__alpha__ * (self.__P__[u][f] * eui - self.__lambda__ * self.__Q__[i][f])
+            alpha *= 0.9
     def predict(self, time_now):
-        pass
+        predictions = []
+        x = 0.
+        for u in self.__P__:
+            for i in self.__Q__:
+                score = self.__predict__(u, i)
+                if score > x:
+                    x = score
+                predictions.append([u, i, score])
+        predictions = np.array(predictions)
+        print x
+        return predictions[:, :-1], predictions[:, -1]
 
 def get_model():
-    return LFM()
+    return LFM(F=20, alpha=0.02, lamda=0.01, ratio=10, scores=[1, 10, 5, 6], max_iterate=10)
