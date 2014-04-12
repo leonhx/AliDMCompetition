@@ -23,11 +23,12 @@ class LPM:
     rho: float, optional(default=0.5), [0, 1)
         penalty factor when bought two products in one day.
     """
-    def __init__(self, topN=3526, rho=0.5):
+    def __init__(self, topN=3526, rho=0.5, max_iterate=500):
         self.__N__ = topN
         assert 0 <= rho < 1
         self.__rho__ = rho
         self.__cached__ = {}
+        self.__max_iter__ = max_iterate
     def fit(self, X):
         X = X[X[:, 2] == 1]
         self.__X__ = X
@@ -86,17 +87,18 @@ class LPM:
         if (brand_id, min_distance, max_distance) not in self.__cached__:
             pred = []
             Q = [(brand_id, min_distance, max_distance)]
-            score = {brand_id: 0.}
+            score = {brand_id: 1.0}
             valid = set()
-            while Q:
-                print len(Q)
+            i = 0
+            while Q and i < self.__max_iter__:
+                i += 1
                 bi, mind, maxd = Q[0]
                 Q = Q[1:]
                 for next_bi in self.__G__[bi]:
                     for e in self.__G__[bi][next_bi]:
                         if e <= maxd:
                             score.setdefault(next_bi, 0.)
-                            score[next_bi] += 1. / self.__w__[bi]
+                            score[next_bi] += score[bi] * 1. / self.__w__[bi]
                             if mind <= e:
                                 valid.add(next_bi)
                             Q.append((next_bi, max(mind-e, 0), maxd-e))
@@ -112,12 +114,13 @@ class LPM:
             u_data = self.__X__[self.__X__[:, 0] == ui]
             for _, b1, _, t1 in u_data:
                 predictions += self.__propagate__(ui, b1, time_now - t1, time_now - t1 + 30)
+        predictions = np.array(predictions)
         predictions = predictions[predictions[:, 2].argsort(axis=0)[-self.__N__:][::-1]]
         print predictions[-1]
         return predictions[:, :2], predictions[:, 2]
 
 def get_model():
-    return LPM(topN=3526, rho=0)
+    return LPM(topN=3526, rho=0, max_iterate=5)
 
 if __name__ == '__main__':
     lpm = get_model()
