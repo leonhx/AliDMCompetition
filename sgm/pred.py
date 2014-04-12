@@ -1,6 +1,8 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
+import numpy as np
+
 class STG:
     """STG is a directed bipartite graph G(U, S, I, E, w):
     U          - the set of user nodes,
@@ -188,6 +190,8 @@ class SGM:
                     self.__recomm__.append([u, i])
                     self.__rating__.append(r)
                     count += 1
+        self.__recomm__ = np.array(self.__recomm__)
+        self.__rating__ = np.array(self.__rating__)
     def fit(self, X):
         """Fit the SGM model according to the given training data.
 
