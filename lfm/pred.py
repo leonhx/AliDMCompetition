@@ -82,15 +82,12 @@ class LFM:
             alpha *= 0.9
     def predict(self, time_now):
         predictions = []
-        x = 0.
         for u in self.__P__:
             for i in self.__Q__:
                 score = self.__predict__(u, i)
-                if score > x:
-                    x = score
                 predictions.append([u, i, score])
         predictions = np.array(predictions)
-        print x
+        predictions = predictions[predictions[:, 2].argsort(axis=0)[-3000:][::-1]]
         return predictions[:, :-1], predictions[:, -1]
 
 def get_model():
